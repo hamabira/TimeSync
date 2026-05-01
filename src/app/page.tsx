@@ -154,6 +154,9 @@ export default function Home() {
                     locale={ja}
                     showOutsideDays={true}
                     fixedWeeks={true}
+                    captionLayout="dropdown"
+                    fromYear={new Date().getFullYear()}
+                    toYear={new Date().getFullYear() + 5}
                   />
                 </PopoverContent>
               </Popover>

@@ -111,6 +111,7 @@ export default function EventPage() {
               numberOfMonths={1}
               showOutsideDays={true}
               fixedWeeks={true}
+              captionLayout="dropdown"
               locale={ja}
               className="border-0"
             />
