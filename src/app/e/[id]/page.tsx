@@ -205,13 +205,17 @@ export default function EventPage() {
 
               {/* User Name Input */}
               <div className="space-y-3 pt-4 border-t border-slate-100">
-                <Label htmlFor="userName" className="text-base font-semibold text-slate-700">
-                  お名前 <span className="text-red-500">*</span>
-                </Label>
+                <div className="flex justify-between items-center max-w-sm">
+                  <Label htmlFor="userName" className="text-base font-semibold text-slate-700">
+                    お名前 <span className="text-red-500">*</span>
+                  </Label>
+                  <span className="text-xs text-slate-400">{userName.length}/20</span>
+                </div>
                 <Input
                   id="userName"
                   placeholder="例: 山田太郎"
                   value={userName}
+                  maxLength={20}
                   onChange={(e) => setUserName(e.target.value)}
                   className="h-12 max-w-sm"
                   required

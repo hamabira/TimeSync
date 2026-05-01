@@ -79,13 +79,17 @@ export default function Home() {
         <CardContent className="pt-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="eventName" className="text-base font-semibold text-slate-700">
-                イベント名 <span className="text-red-500">*</span>
-              </Label>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="eventName" className="text-base font-semibold text-slate-700">
+                  イベント名 <span className="text-red-500">*</span>
+                </Label>
+                <span className="text-xs text-slate-400">{eventName.length}/50</span>
+              </div>
               <Input
                 id="eventName"
                 placeholder="例: プロジェクトキックオフ、週末の飲み会"
                 value={eventName}
+                maxLength={50}
                 onChange={(e) => setEventName(e.target.value)}
                 required
                 className="h-12 text-base transition-shadow focus-visible:ring-blue-500"
@@ -93,13 +97,17 @@ export default function Home() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-base font-semibold text-slate-700">
-                メモ・詳細（任意）
-              </Label>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="description" className="text-base font-semibold text-slate-700">
+                  メモ・詳細（任意）
+                </Label>
+                <span className="text-xs text-slate-400">{description.length}/200</span>
+              </div>
               <Textarea
                 id="description"
                 placeholder="例: 場所は新宿周辺を予定しています。&#10;この期間の中で都合の良い日と時間を教えてください！"
                 value={description}
+                maxLength={200}
                 onChange={(e) => setDescription(e.target.value)}
                 className="resize-none h-24 transition-shadow focus-visible:ring-blue-500"
               />
