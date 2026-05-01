@@ -10,12 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 
+import { startOfDay, addDays } from "date-fns";
+
+const today = startOfDay(new Date());
+
 // モックデータ（実際はURLのidを使ってDBから取得する）
 const mockEvent = {
   name: "週末の飲み会（モック）",
   description: "新宿周辺で予定しています。参加できる日と時間帯を教えてください！",
-  startDate: new Date(new Date().setDate(new Date().getDate() + 1)), // 明日
-  endDate: new Date(new Date().setDate(new Date().getDate() + 14)), // 2週間後
+  startDate: addDays(today, 1), // 明日
+  endDate: addDays(today, 14), // 2週間後
 };
 
 type TimeSlot = {
@@ -103,6 +107,7 @@ export default function EventPage() {
               defaultMonth={mockEvent.startDate}
               fromDate={mockEvent.startDate}
               toDate={mockEvent.endDate}
+              disabled={[{ before: mockEvent.startDate, after: mockEvent.endDate }]}
               numberOfMonths={1}
               showOutsideDays={true}
               fixedWeeks={true}
