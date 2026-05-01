@@ -1,24 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import { format } from "date-fns";
+import { ja } from "date-fns/locale";
+import { Calendar as CalendarIcon, CalendarDays, Clock, Users } from "lucide-react";
+import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarDays, Clock, Users } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const [eventName, setEventName] = useState("");
   const [description, setDescription] = useState("");
-  const [dates, setDates] = useState("");
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(new Date().setDate(new Date().getDate() + 7)),
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!eventName || !dates) return;
-    // TODO: Supabase連携時に実装
-    console.log({ eventName, description, dates });
-    alert("イベント作成（モック）\n" + eventName + "\n" + dates);
+    if (!eventName || !date?.from || !date?.to) return;
+    // TODO: DB連携時に実装 (Cloudflare D1)
+    console.log({ eventName, description, date });
+    alert(`イベント作成（モック）\n${eventName}\n期間: ${format(date.from, "yyyy/MM/dd")} 〜 ${format(date.to, "yyyy/MM/dd")}`);
   };
 
   return (
@@ -26,11 +35,11 @@ export default function Home() {
       {/* Hero Section */}
       <section className="text-center space-y-4">
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
-          みんなの予定を、もっと<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">美しく</span>
+          みんなの予定を、もっと<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">スマートに</span>
         </h1>
         <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-          TimeSyncは、圧倒的に見やすく使いやすい日程調整アプリです。
-          ログイン不要、スマホでもサクサク動くモダンなUIで、煩わしいスケジュール調整を快適にします。
+          TimeSyncは、次世代の日程調整アプリです。
+          幹事は「対象の期間」を選ぶだけ。参加者全員で空いている日を持ち寄る新しいスタイルで、スケジュール調整の負担をゼロにします。
         </p>
       </section>
 
@@ -40,22 +49,22 @@ export default function Home() {
           <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-3">
             <CalendarDays size={24} />
           </div>
-          <h3 className="font-semibold text-slate-900">直感的な入力</h3>
-          <p className="text-sm text-slate-500 mt-1">候補日をテキストでサクッと入力。コピペにも対応。</p>
+          <h3 className="font-semibold text-slate-900">幹事の負担ゼロ</h3>
+          <p className="text-sm text-slate-500 mt-1">候補日を1つずつ入力する手間は不要。対象となる「期間」だけを選んでURLを共有するだけ。</p>
         </div>
         <div className="p-4 rounded-2xl bg-white shadow-sm border border-slate-100 flex flex-col items-center hover:shadow-md transition-shadow">
           <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 mb-3">
             <Clock size={24} />
           </div>
-          <h3 className="font-semibold text-slate-900">爆速作成</h3>
-          <p className="text-sm text-slate-500 mt-1">会員登録は一切不要。思い立ったらすぐイベントを作れます。</p>
+          <h3 className="font-semibold text-slate-900">細やかな時間指定</h3>
+          <p className="text-sm text-slate-500 mt-1">参加者は自分の空いている日付と「時間帯」を直感的に選んで提案できます。</p>
         </div>
         <div className="p-4 rounded-2xl bg-white shadow-sm border border-slate-100 flex flex-col items-center hover:shadow-md transition-shadow">
           <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 mb-3">
             <Users size={24} />
           </div>
-          <h3 className="font-semibold text-slate-900">見やすい結果</h3>
-          <p className="text-sm text-slate-500 mt-1">スマホでも崩れない美しい表で、最適な日が一目で分かります。</p>
+          <h3 className="font-semibold text-slate-900">最適な日がすぐ分かる</h3>
+          <p className="text-sm text-slate-500 mt-1">みんなの予定が重なっている日時が自動でハイライトされ、一目で決まります。</p>
         </div>
       </section>
 
@@ -64,7 +73,7 @@ export default function Home() {
         <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-6">
           <CardTitle className="text-2xl font-bold text-slate-800">新しくイベントを作る</CardTitle>
           <CardDescription className="text-base text-slate-500">
-            イベント名と候補日程を入力して、「作成する」ボタンを押してください。
+            イベント名と対象期間を入力して、「作成する」ボタンを押してください。
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-8">
@@ -89,31 +98,57 @@ export default function Home() {
               </Label>
               <Textarea
                 id="description"
-                placeholder="例: 場所は新宿周辺を予定しています。"
+                placeholder="例: 場所は新宿周辺を予定しています。&#10;この期間の中で都合の良い日と時間を教えてください！"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="resize-none h-24 transition-shadow focus-visible:ring-blue-500"
               />
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between items-end">
-                <Label htmlFor="dates" className="text-base font-semibold text-slate-700">
-                  候補日程 <span className="text-red-500">*</span>
-                </Label>
-                <span className="text-xs text-slate-400 font-medium">改行で複数の日程を区切ります</span>
-              </div>
-              <Textarea
-                id="dates"
-                placeholder={"5/1(月) 19:00〜\n5/2(火) 19:00〜\n5/3(水) 19:00〜"}
-                value={dates}
-                onChange={(e) => setDates(e.target.value)}
-                required
-                className="h-48 font-mono text-sm leading-relaxed transition-shadow focus-visible:ring-blue-500 p-4 bg-slate-50"
-              />
-              <p className="text-sm text-slate-500">
-                テキストを貼り付けるだけで、自動で候補日が作成されます。
-              </p>
+            <div className="space-y-2 flex flex-col">
+              <Label className="text-base font-semibold text-slate-700">
+                対象期間 <span className="text-red-500">*</span>
+              </Label>
+              <span className="text-sm text-slate-500 mb-2">
+                参加者が空き日程を提案できる範囲を指定します。
+              </span>
+              <Popover>
+                <PopoverTrigger
+                  id="date"
+                  className={cn(
+                    "inline-flex items-center justify-center whitespace-nowrap rounded-lg border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+                    "w-[300px] h-12 px-4 justify-start text-left font-normal text-base",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-5 w-5" />
+                  {date?.from ? (
+                    date.to ? (
+                      <>
+                        {format(date.from, "yyyy年MM月dd日")} -{" "}
+                        {format(date.to, "yyyy年MM月dd日")}
+                      </>
+                    ) : (
+                      format(date.from, "yyyy年MM月dd日")
+                    )
+                  ) : (
+                    <span>期間を選択</span>
+                  )}
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={1}
+                    locale={ja}
+                    showOutsideDays={true}
+                    fixedWeeks={true}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </form>
         </CardContent>
@@ -121,7 +156,7 @@ export default function Home() {
           <Button 
             className="w-full h-14 text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md transition-all active:scale-[0.98]"
             onClick={handleSubmit}
-            disabled={!eventName || !dates}
+            disabled={!eventName || !date?.from || !date?.to}
           >
             イベントを作成する
           </Button>
