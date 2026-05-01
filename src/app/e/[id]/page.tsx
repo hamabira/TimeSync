@@ -37,11 +37,11 @@ export default function EventPage() {
   // カレンダーで日付が選択・解除されたときの処理
   const handleSelectDates = (dates: Date[] | undefined) => {
     setSelectedDates(dates);
-    
+
     // 選択解除された日付のスロットを削除
     if (dates) {
       setTimeSlots((prev) => prev.filter((slot) => dates.some((d) => d.getTime() === slot.date.getTime())));
-      
+
       // 新しく選択された日付のデフォルトスロット（19:00〜21:00）を追加
       dates.forEach((date) => {
         if (!timeSlots.some((slot) => slot.date.getTime() === date.getTime())) {
@@ -74,7 +74,7 @@ export default function EventPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!userName || timeSlots.length === 0) return;
-    
+
     // TODO: DB保存処理 (Cloudflare D1)
     console.log({ userName, timeSlots });
     alert(`${userName}さんの希望日程を保存しました！（モック）\n選択数: ${timeSlots.length}件`);
@@ -125,7 +125,7 @@ export default function EventPage() {
               <CardDescription>選んだ日付ごとに、参加できる時間帯を調整できます。</CardDescription>
             </CardHeader>
             <CardContent className="pt-6 space-y-8">
-              
+
               {/* Selected Dates List */}
               <div className="space-y-4">
                 <Label className="text-base font-semibold text-slate-700">選択した日程</Label>
@@ -137,7 +137,7 @@ export default function EventPage() {
                   <div className="space-y-4">
                     {[...selectedDates].sort((a, b) => a.getTime() - b.getTime()).map((date) => {
                       const slotsForDate = timeSlots.filter((slot) => slot.date.getTime() === date.getTime());
-                      
+
                       return (
                         <div key={date.toISOString()} className="p-4 rounded-lg border border-slate-200 bg-white shadow-sm transition-all hover:border-blue-200">
                           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
@@ -163,7 +163,7 @@ export default function EventPage() {
                               + 時間を追加
                             </Button>
                           </div>
-                          
+
                           <div className="space-y-2">
                             {slotsForDate.length === 0 ? (
                               <div className="text-sm text-slate-400 py-2">時間が指定されていません（「＋時間を追加」を押してください）</div>
@@ -175,14 +175,14 @@ export default function EventPage() {
                                     type="time"
                                     value={slot.startTime}
                                     onChange={(e) => updateTimeSlot(slot.id, "startTime", e.target.value)}
-                                    className="w-28 h-9"
+                                    className="w-28 h-9 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:p-1 [&::-webkit-calendar-picker-indicator]:rounded-md hover:[&::-webkit-calendar-picker-indicator]:bg-slate-200 transition-colors"
                                   />
                                   <span className="text-slate-500 shrink-0">〜</span>
                                   <Input
                                     type="time"
                                     value={slot.endTime}
                                     onChange={(e) => updateTimeSlot(slot.id, "endTime", e.target.value)}
-                                    className="w-28 h-9"
+                                    className="w-28 h-9 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:p-1 [&::-webkit-calendar-picker-indicator]:rounded-md hover:[&::-webkit-calendar-picker-indicator]:bg-slate-200 transition-colors"
                                   />
                                   <Button
                                     variant="ghost"
@@ -220,7 +220,7 @@ export default function EventPage() {
 
             </CardContent>
             <CardFooter className="bg-slate-50/50 border-t border-slate-100 p-6">
-              <Button 
+              <Button
                 className="w-full sm:w-auto h-12 px-8 text-base font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md"
                 onClick={handleSubmit}
                 disabled={!userName || timeSlots.length === 0}
