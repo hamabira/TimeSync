@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { createEvent } from "@/app/actions";
 import { ja } from "date-fns/locale";
 import { Calendar as CalendarIcon, CalendarDays, Clock, Users } from "lucide-react";
 import { DateRange } from "react-day-picker";
@@ -15,19 +17,33 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 
 export default function Home() {
+  const router = useRouter();
   const [eventName, setEventName] = useState("");
   const [description, setDescription] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(),
     to: new Date(new Date().setDate(new Date().getDate() + 7)),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!eventName || !date?.from || !date?.to) return;
-    // TODO: DB連携時に実装 (Cloudflare D1)
-    console.log({ eventName, description, date });
-    alert(`イベント作成（モック）\n${eventName}\n期間: ${format(date.from, "yyyy/MM/dd")} 〜 ${format(date.to, "yyyy/MM/dd")}`);
+    if (!eventName || !date?.from || !date?.to || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      const eventId = await createEvent({
+        name: eventName,
+        description,
+        startDate: date.from,
+        endDate: date.to,
+      });
+      router.push(`/e/${eventId}`);
+    } catch (error) {
+      console.error(error);
+      alert("イベントの作成に失敗しました。");
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -167,9 +183,9 @@ export default function Home() {
           <Button 
             className="w-full h-14 text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md transition-all active:scale-[0.98]"
             onClick={handleSubmit}
-            disabled={!eventName || !date?.from || !date?.to}
+            disabled={!eventName || !date?.from || !date?.to || isSubmitting}
           >
-            イベントを作成する
+            {isSubmitting ? "作成中..." : "イベントを作成する"}
           </Button>
         </CardFooter>
       </Card>
