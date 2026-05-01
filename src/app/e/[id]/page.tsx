@@ -124,43 +124,76 @@ export default function EventPage() {
               {/* Selected Dates List */}
               <div className="space-y-4">
                 <Label className="text-base font-semibold text-slate-700">選択した日程</Label>
-                {timeSlots.length === 0 ? (
+                {!selectedDates || selectedDates.length === 0 ? (
                   <div className="p-8 text-center text-slate-400 bg-slate-50 rounded-lg border border-dashed border-slate-200">
                     左のカレンダーから日付を選んでください
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {timeSlots.sort((a, b) => a.date.getTime() - b.date.getTime()).map((slot) => (
-                      <div key={slot.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 p-3 rounded-lg border border-slate-200 bg-white shadow-sm transition-all hover:border-blue-200">
-                        <div className="font-medium text-slate-700 w-[120px] shrink-0">
-                          {format(slot.date, "M月d日(E)", { locale: ja })}
+                  <div className="space-y-4">
+                    {[...selectedDates].sort((a, b) => a.getTime() - b.getTime()).map((date) => {
+                      const slotsForDate = timeSlots.filter((slot) => slot.date.getTime() === date.getTime());
+                      
+                      return (
+                        <div key={date.toISOString()} className="p-4 rounded-lg border border-slate-200 bg-white shadow-sm transition-all hover:border-blue-200">
+                          <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                            <div className="font-semibold text-slate-800 text-lg">
+                              {format(date, "M月d日(E)", { locale: ja })}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 text-sm"
+                              onClick={() => {
+                                setTimeSlots((prev) => [
+                                  ...prev,
+                                  {
+                                    id: Math.random().toString(36).substring(7),
+                                    date: date,
+                                    startTime: "19:00",
+                                    endTime: "21:00",
+                                  },
+                                ]);
+                              }}
+                            >
+                              + 時間を追加
+                            </Button>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            {slotsForDate.length === 0 ? (
+                              <div className="text-sm text-slate-400 py-2">時間が指定されていません（「＋時間を追加」を押してください）</div>
+                            ) : (
+                              slotsForDate.map((slot) => (
+                                <div key={slot.id} className="flex items-center gap-2">
+                                  <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                                  <Input
+                                    type="time"
+                                    value={slot.startTime}
+                                    onChange={(e) => updateTimeSlot(slot.id, "startTime", e.target.value)}
+                                    className="w-28 h-9"
+                                  />
+                                  <span className="text-slate-500 shrink-0">〜</span>
+                                  <Input
+                                    type="time"
+                                    value={slot.endTime}
+                                    onChange={(e) => updateTimeSlot(slot.id, "endTime", e.target.value)}
+                                    className="w-28 h-9"
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-slate-400 hover:text-red-500 hover:bg-red-50 ml-auto"
+                                    onClick={() => removeTimeSlot(slot.id)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              ))
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-                          <Clock className="w-4 h-4 text-slate-400" />
-                          <Input
-                            type="time"
-                            value={slot.startTime}
-                            onChange={(e) => updateTimeSlot(slot.id, "startTime", e.target.value)}
-                            className="w-28 h-9"
-                          />
-                          <span className="text-slate-500">〜</span>
-                          <Input
-                            type="time"
-                            value={slot.endTime}
-                            onChange={(e) => updateTimeSlot(slot.id, "endTime", e.target.value)}
-                            className="w-28 h-9"
-                          />
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-slate-400 hover:text-red-500 hover:bg-red-50"
-                          onClick={() => removeTimeSlot(slot.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
