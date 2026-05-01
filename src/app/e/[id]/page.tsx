@@ -22,6 +22,32 @@ const mockEvent = {
   endDate: addDays(today, 14), // 2週間後
 };
 
+// モック参加者データ（他のユーザーの回答）
+const mockParticipants = [
+  {
+    name: "山田太郎",
+    timeSlots: [
+      { date: addDays(today, 1), startTime: "18:00", endTime: "22:00" },
+      { date: addDays(today, 2), startTime: "19:00", endTime: "21:00" },
+    ]
+  },
+  {
+    name: "佐藤花子",
+    timeSlots: [
+      { date: addDays(today, 1), startTime: "19:00", endTime: "23:00" },
+      { date: addDays(today, 2), startTime: "18:00", endTime: "21:00" },
+      { date: addDays(today, 3), startTime: "13:00", endTime: "18:00" },
+    ]
+  },
+  {
+    name: "鈴木一郎",
+    timeSlots: [
+      { date: addDays(today, 1), startTime: "19:00", endTime: "21:00" },
+      { date: addDays(today, 3), startTime: "10:00", endTime: "17:00" },
+    ]
+  }
+];
+
 type TimeSlot = {
   id: string;
   date: Date;
@@ -33,6 +59,17 @@ export default function EventPage() {
   const [userName, setUserName] = useState("");
   const [selectedDates, setSelectedDates] = useState<Date[] | undefined>([]);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [highlightedRow, setHighlightedRow] = useState<string | null>(null);
+
+  const scrollToRow = (date: Date, hour: number) => {
+    const rowId = `row-${date.getTime()}-${hour}`;
+    const element = document.getElementById(rowId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      setHighlightedRow(rowId);
+      setTimeout(() => setHighlightedRow(null), 2000);
+    }
+  };
 
   // カレンダーで日付が選択・解除されたときの処理
   const handleSelectDates = (dates: Date[] | undefined) => {
@@ -237,6 +274,148 @@ export default function EventPage() {
           </Card>
         </div>
       </div>
+
+      {/* Results Section */}
+      <div className="pt-12 space-y-8 border-t border-slate-200 mt-12">
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-bold text-slate-800">みんなの回答状況</h2>
+          <p className="text-slate-500">現在 {mockParticipants.length} 人が回答しています</p>
+        </div>
+
+        {/* Best Matches */}
+        <div className="grid sm:grid-cols-3 gap-4">
+          {[
+            { date: addDays(today, 1), time: "19:00 〜 21:00", count: 3, label: "第1候補", targetHour: 19 },
+            { date: addDays(today, 2), time: "19:00 〜 21:00", count: 2, label: "第2候補", targetHour: 19 },
+            { date: addDays(today, 1), time: "18:00 〜 19:00", count: 2, label: "第3候補", targetHour: 18 },
+          ].map((match, i) => (
+            <Card 
+              key={i} 
+              onClick={() => scrollToRow(match.date, match.targetHour)}
+              className={`border-2 cursor-pointer transition-all hover:scale-105 active:scale-95 ${i === 0 ? "border-blue-500 bg-blue-50/30" : "border-slate-200 hover:border-blue-300"}`}
+            >
+              <CardContent className="p-4 text-center space-y-2">
+                <div className={`text-sm font-bold ${i === 0 ? "text-blue-600" : "text-slate-500"}`}>
+                  {match.label}
+                </div>
+                <div className="text-lg font-bold text-slate-800">
+                  {format(match.date, "M/d (E)", { locale: ja })}
+                </div>
+                <div className="text-slate-600 font-medium">{match.time}</div>
+                <div className="inline-block px-3 py-1 bg-slate-100 rounded-full text-sm font-semibold text-slate-700">
+                  {match.count} 人参加可能
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Heatmap Table */}
+        <Card className="overflow-hidden border-slate-200 shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                <tr>
+                  <th className="px-4 py-3 min-w-[120px] sticky left-0 bg-slate-50 z-10 border-r border-slate-200 shadow-[1px_0_0_0_#e2e8f0]">日程</th>
+                  <th className="px-4 py-3 min-w-[100px] text-center border-r border-slate-200">参加率</th>
+                  {mockParticipants.map((p, i) => (
+                    <th key={i} className="px-4 py-3 min-w-[100px] text-center">{p.name}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {[addDays(today, 1), addDays(today, 2), addDays(today, 3)].flatMap((date) => {
+                  // モックとして各日の18:00~23:00を評価
+                  const allHours = [18, 19, 20, 21, 22]; 
+                  
+                  const rows = allHours.map(hour => {
+                    const attendees = mockParticipants.filter(p => {
+                      const slot = p.timeSlots.find(s => s.date.getTime() === date.getTime());
+                      if (!slot) return false;
+                      const start = parseInt(slot.startTime.split(":")[0]);
+                      const end = parseInt(slot.endTime.split(":")[0]);
+                      return hour >= start && hour < end;
+                    });
+                    return {
+                      hour,
+                      attendees,
+                      attendeesKey: attendees.map(a => a.name).sort().join(',')
+                    };
+                  });
+
+                  // 連続する時間帯で参加者が同じならマージする
+                  const grouped = [];
+                  if (rows.length === 0) return [];
+                  
+                  let currentGroup = {
+                    startHour: rows[0].hour,
+                    endHour: rows[0].hour + 1,
+                    attendees: rows[0].attendees,
+                    attendeesKey: rows[0].attendeesKey
+                  };
+
+                  for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.attendeesKey === currentGroup.attendeesKey && row.hour === currentGroup.endHour) {
+                      currentGroup.endHour = row.hour + 1;
+                    } else {
+                      grouped.push(currentGroup);
+                      currentGroup = {
+                        startHour: row.hour,
+                        endHour: row.hour + 1,
+                        attendees: row.attendees,
+                        attendeesKey: row.attendeesKey
+                      };
+                    }
+                  }
+                  grouped.push(currentGroup);
+                  
+                  return grouped.map((group) => {
+                    const ratio = group.attendees.length / mockParticipants.length;
+                    const isPerfect = ratio === 1;
+                    const isGood = ratio >= 0.6 && !isPerfect;
+
+                    return (
+                      <tr 
+                        key={`${date.toISOString()}-${group.startHour}`} 
+                        id={`row-${date.getTime()}-${group.startHour}`}
+                        className={`transition-colors duration-500 ${highlightedRow === `row-${date.getTime()}-${group.startHour}` ? "bg-yellow-100/80" : "hover:bg-slate-50/50"}`}
+                      >
+                        <td className="px-4 py-3 sticky left-0 bg-white z-10 border-r border-slate-200 shadow-[1px_0_0_0_#e2e8f0]">
+                          <div className="font-semibold text-slate-800">{format(date, "M/d (E)", { locale: ja })}</div>
+                          <div className="text-slate-500">{group.startHour}:00 〜 {group.endHour}:00</div>
+                        </td>
+                        <td className="px-4 py-3 text-center border-r border-slate-200">
+                          <div className={`w-full h-full flex items-center justify-center rounded py-2 font-bold ${
+                            isPerfect ? "bg-blue-600 text-white" : 
+                            isGood ? "bg-blue-300 text-blue-900" : 
+                            ratio > 0 ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-400"
+                          }`}>
+                            {group.attendees.length} / {mockParticipants.length}
+                          </div>
+                        </td>
+                        {mockParticipants.map((p, pIdx) => {
+                          const canAttend = group.attendees.some(a => a.name === p.name);
+                          return (
+                            <td key={pIdx} className="px-4 py-3 text-center">
+                              {canAttend ? (
+                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 font-bold">〇</span>
+                              ) : (
+                                <span className="inline-flex items-center justify-center w-8 h-8 text-slate-300">✕</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  });
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+
     </div>
   );
 }
