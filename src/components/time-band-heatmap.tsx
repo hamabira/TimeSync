@@ -7,8 +7,10 @@ import {
   formatHourRange,
   formatShortHour,
   getHeatmapCellClass,
+  getTimeBandKey,
   SCHEDULE_HOURS,
   type TimeBandRow,
+  type TimeBandSegment,
 } from "@/lib/scheduling";
 import { cn } from "@/lib/utils";
 
@@ -16,12 +18,9 @@ type TimeBandHeatmapProps = {
   rows: TimeBandRow[];
   participantCount: number;
   highlightedKey: string | null;
-  onSelectBand: (row: TimeBandRow) => void;
+  selectedBandKey: string | null;
+  onSelectBand: (band: TimeBandSegment | null) => void;
 };
-
-function buildRowKey(date: Date, hour: number) {
-  return `${date.getTime()}-${hour}`;
-}
 
 const heatmapGridColumns = `180px repeat(${SCHEDULE_HOURS.length}, minmax(0, 1fr))`;
 
@@ -29,6 +28,7 @@ export function TimeBandHeatmap({
   rows,
   participantCount,
   highlightedKey,
+  selectedBandKey,
   onSelectBand,
 }: TimeBandHeatmapProps) {
   if (rows.length === 0) {
@@ -61,9 +61,7 @@ export function TimeBandHeatmap({
 
         <div className="space-y-2">
           {rows.map((row) => {
-            const bestKey = row.bestSegment
-              ? buildRowKey(row.date, row.bestSegment.startHour)
-              : null;
+            const bestKey = row.bestSegment ? getTimeBandKey(row.date, row.bestSegment.startHour) : null;
 
             return (
               <div
@@ -78,8 +76,7 @@ export function TimeBandHeatmap({
                   </div>
                   {row.bestSegment ? (
                     <div className="mt-1 text-xs text-slate-500">
-                      最高 {row.bestSegment.count} 人 /{" "}
-                      {formatHourRange(row.bestSegment.startHour, row.bestSegment.endHour)}
+                      最高 {row.bestSegment.count} 人 / {formatHourRange(row.bestSegment.startHour, row.bestSegment.endHour)}
                     </div>
                   ) : (
                     <div className="mt-1 text-xs text-slate-400">回答のある時間帯なし</div>
@@ -87,14 +84,15 @@ export function TimeBandHeatmap({
                 </div>
 
                 {row.cells.map((cell) => {
-                  const cellKey = buildRowKey(row.date, cell.hour);
-                  const isHighlighted = highlightedKey === cellKey || bestKey === cellKey;
+                  const cellKey = getTimeBandKey(row.date, cell.hour);
+                  const isHighlighted =
+                    highlightedKey === cellKey || selectedBandKey === cellKey || bestKey === cellKey;
 
                   return (
                     <button
                       key={cell.hour}
                       type="button"
-                      onClick={() => onSelectBand(row)}
+                      onClick={() => onSelectBand(row.bestSegment)}
                       className={cn(
                         "group relative h-12 rounded-md border border-transparent transition-all",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 focus-visible:ring-offset-1",

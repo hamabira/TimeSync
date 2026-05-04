@@ -31,10 +31,12 @@ import { getEventWithParticipants, submitResponse } from "@/app/actions";
 import {
   buildTimeBandRows,
   buildTopSegments,
+  formatBandSummary,
   formatHourRange,
+  getTimeBandKey,
   normalizeParticipantName,
   type EventWithParticipants,
-  type TimeBandRow,
+  type TimeBandSegment,
 } from "@/lib/scheduling";
 import { cn } from "@/lib/utils";
 
@@ -81,6 +83,9 @@ function createDefaultSlot(date: Date): TimeSlotDraft {
   };
 }
 
+function getInitialBand(participants: EventWithParticipants["participants"]) {
+  return buildTopSegments(buildTimeBandRows(participants))[0] ?? null;
+}
 export default function EventPage() {
   const params = useParams();
   const eventId = params.id as string;
@@ -91,8 +96,10 @@ export default function EventPage() {
   const [userName, setUserName] = useState("");
   const [timeSlots, setTimeSlots] = useState<TimeSlotDraft[]>([]);
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
+  const [selectedBand, setSelectedBand] = useState<TimeBandSegment | null>(null);
   const [notice, setNotice] = useState<NoticeState>(null);
   const [copyState, setCopyState] = useState<CopyState>("idle");
+  const [bandCopyState, setBandCopyState] = useState<CopyState>("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -106,6 +113,7 @@ export default function EventPage() {
           const hydrated = hydrateEventData(data);
           setEventData(hydrated.event);
           setParticipantsData(hydrated.participants);
+          setSelectedBand(getInitialBand(hydrated.participants));
         }
 
         setIsLoading(false);
@@ -130,31 +138,17 @@ export default function EventPage() {
   const candidates = useMemo(() => buildTopSegments(rows).slice(0, 3), [rows]);
 
   const responseCount = participantsData.length;
+  const selectedBandKey = selectedBand ? getTimeBandKey(selectedBand.date, selectedBand.startHour) : null;
 
-  const scrollToBand = (row: TimeBandRow) => {
-    if (!row.bestSegment) {
+  const openBand = (band: TimeBandSegment | null) => {
+    if (!band) {
       return;
     }
 
-    const bandKey = `${row.date.getTime()}-${row.bestSegment.startHour}`;
-    const element = document.getElementById(`time-band-${row.date.getTime()}`);
+    setSelectedBand(band);
 
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-
-    setHighlightedKey(bandKey);
-    window.setTimeout(() => setHighlightedKey(null), 2000);
-  };
-
-  const scrollToCandidate = (candidate: TimeBandRow["bestSegment"]) => {
-    if (!candidate) {
-      return;
-    }
-
-    const bandKey = `${candidate.date.getTime()}-${candidate.startHour}`;
-    const element = document.getElementById(`time-band-${candidate.date.getTime()}`);
-
+    const bandKey = getTimeBandKey(band.date, band.startHour);
+    const element = document.getElementById(`time-band-${band.date.getTime()}`);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
@@ -206,6 +200,28 @@ export default function EventPage() {
     }
   };
 
+  const handleCopyBandSummary = async () => {
+    if (!selectedBand) {
+      return;
+    }
+
+    const text = [
+      `候補時間: ${formatBandSummary(selectedBand)}`,
+      `日付: ${format(selectedBand.date, "yyyy/MM/dd (E)", { locale: ja })}`,
+      `参加者: ${selectedBand.attendeeNames.join("、")}`,
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setBandCopyState("copied");
+      window.setTimeout(() => setBandCopyState("idle"), 1800);
+    } catch (error) {
+      console.error(error);
+      setBandCopyState("error");
+      window.setTimeout(() => setBandCopyState("idle"), 1800);
+    }
+  };
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
@@ -235,6 +251,7 @@ export default function EventPage() {
       if (data) {
         const hydrated = hydrateEventData(data);
         setParticipantsData(hydrated.participants);
+        setSelectedBand((current) => current ?? getInitialBand(hydrated.participants));
       }
 
       setUserName("");
@@ -420,15 +437,15 @@ export default function EventPage() {
                                     }
                                     className="h-9 w-28"
                                   />
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  type="button"
-                                  className="ml-auto text-slate-400 hover:bg-rose-50 hover:text-rose-500"
-                                  onClick={() => removeTimeSlot(slot.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    type="button"
+                                    className="ml-auto text-slate-400 hover:bg-rose-50 hover:text-rose-500"
+                                    onClick={() => removeTimeSlot(slot.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
                               ))
                             )}
@@ -480,7 +497,60 @@ export default function EventPage() {
               参加可能人数が多い時間帯を、横バー型のヒートマップで表示します。
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 pt-6">
+          <CardContent className="space-y-5 pt-6">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-slate-700">選択中の帯</div>
+                  {selectedBand ? (
+                    <>
+                      <div className="mt-2 text-sm text-slate-600">
+                        {format(selectedBand.date, "M/d (E)", { locale: ja })}
+                      </div>
+                      <div className="mt-1 text-base font-bold text-slate-900">
+                        {formatBandSummary(selectedBand)}
+                      </div>
+                      <div className="mt-2 text-sm text-slate-600">
+                        {selectedBand.attendeeNames.join("、")}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="mt-2 text-sm text-slate-500">
+                      帯を選ぶと詳細がここに表示されます。
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={handleCopyBandSummary}
+                    disabled={!selectedBand}
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    コピー
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    type="button"
+                    onClick={() => setSelectedBand(null)}
+                    disabled={!selectedBand}
+                  >
+                    解除
+                  </Button>
+                </div>
+              </div>
+              <div className="mt-3 text-xs text-slate-500">
+                {bandCopyState === "copied"
+                  ? "候補文をコピーしました。"
+                  : bandCopyState === "error"
+                    ? "コピーに失敗しました。"
+                    : "候補文はそのままチャットに貼れます。"}
+              </div>
+            </div>
+
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <Link2 className="h-4 w-4" />
               第一候補から第三候補を上に並べています。
@@ -502,11 +572,13 @@ export default function EventPage() {
                       className={cn(
                         "w-full rounded-xl border p-4 text-left transition-all",
                         "hover:-translate-y-0.5 hover:shadow-md",
-                        index === 0
+                        selectedBandKey === candidateKey
+                          ? "border-blue-500 bg-blue-50/70"
+                          : index === 0
                           ? "border-blue-500 bg-blue-50/60"
                           : "border-slate-200 bg-white hover:border-blue-300"
                       )}
-                      onClick={() => scrollToCandidate(candidate)}
+                      onClick={() => openBand(candidate)}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
@@ -549,11 +621,11 @@ export default function EventPage() {
         </Card>
       </div>
 
-      <Card className="shadow-sm ring-1 ring-slate-200">
-        <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4">
-          <CardTitle className="text-xl font-bold text-slate-800">みんなの回答状況</CardTitle>
-          <CardDescription>
-            横に流れる時間帯の帯で、重なりやすい時間がすぐ分かります。
+        <Card className="shadow-sm ring-1 ring-slate-200">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4">
+            <CardTitle className="text-xl font-bold text-slate-800">みんなの回答状況</CardTitle>
+            <CardDescription>
+              横に流れる時間帯の帯で、重なりやすい時間がすぐ分かります。
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
@@ -561,7 +633,8 @@ export default function EventPage() {
             rows={rows}
             participantCount={responseCount}
             highlightedKey={highlightedKey}
-            onSelectBand={scrollToBand}
+            selectedBandKey={selectedBandKey}
+            onSelectBand={openBand}
           />
         </CardContent>
       </Card>

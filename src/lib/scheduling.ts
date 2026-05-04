@@ -88,6 +88,14 @@ export function formatShortHour(hour: number) {
   return `${String(hour).padStart(2, "0")}:00`;
 }
 
+export function getTimeBandKey(date: Date, startHour: number) {
+  return `${date.getTime()}-${startHour}`;
+}
+
+export function formatBandSummary(segment: TimeBandSegment) {
+  return `${formatShortHour(segment.startHour)} - ${formatShortHour(segment.endHour)} / ${segment.count}人参加可能`;
+}
+
 export function getHeatmapCellClass(count: number, participantCount: number) {
   if (count === 0) {
     return "bg-slate-100 text-slate-400";
