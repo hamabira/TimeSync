@@ -164,7 +164,6 @@ export async function submitResponse(
     .select({ id: participants.id })
     .from(participants)
     .where(and(eq(participants.eventId, eventId), eq(participants.name, normalizedName)));
-
   const existingParticipantIds = existingParticipants.map((participant) => participant.id);
   const participantId = crypto.randomUUID();
 
