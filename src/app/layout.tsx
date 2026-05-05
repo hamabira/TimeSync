@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 
 export const runtime = "edge";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "TimeSync | 見やすい日程調整アプリ",
@@ -18,7 +15,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className="h-full antialiased">
-      <body className={`${inter.className} min-h-full flex flex-col bg-slate-50 text-slate-900`}>
+      <body
+        className="min-h-full flex flex-col bg-slate-50 text-slate-900"
+        style={{
+          fontFamily:
+            'Inter, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif',
+        }}
+      >
         <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">

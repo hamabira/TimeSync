@@ -10,6 +10,9 @@ if (process.env.NODE_ENV === "development") {
 
 const nextConfig: NextConfig = {
   /* config options here */
+  experimental: {
+    webpackBuildWorker: false,
+  },
   reactCompiler: true,
 };
 
