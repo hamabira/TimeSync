@@ -19,6 +19,6 @@ export const timeSlots = sqliteTable("time_slots", {
   id: text("id").primaryKey(),
   participantId: text("participant_id").notNull().references(() => participants.id, { onDelete: "cascade" }),
   date: integer("date", { mode: "timestamp" }).notNull(),
-  startTime: text("start_time").notNull(), // "18:00" または "終日"
+  startTime: text("start_time").notNull(), // "HH:MM" 形式
   endTime: text("end_time").notNull(),
 });

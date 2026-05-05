@@ -152,37 +152,59 @@ export async function submitResponse(
     throw new Error("イベントが見つかりません。");
   }
 
-  await db.transaction(async (tx) => {
-    const existingParticipants = await tx
-      .select({ id: participants.id })
-      .from(participants)
-      .where(and(eq(participants.eventId, eventId), eq(participants.name, normalizedName)));
+  const event = eventResult[0];
 
-    const existingParticipantIds = existingParticipants.map((participant) => participant.id);
-
-    if (existingParticipantIds.length > 0) {
-      await tx.delete(timeSlots).where(inArray(timeSlots.participantId, existingParticipantIds));
-      await tx.delete(participants).where(inArray(participants.id, existingParticipantIds));
+  for (const slot of validatedSlots) {
+    if (slot.date.getTime() < event.startDate.getTime() || slot.date.getTime() > event.endDate.getTime()) {
+      throw new Error("日付が対象期間の範囲外です。");
     }
+  }
 
-    const participantId = crypto.randomUUID();
+  const existingParticipants = await db
+    .select({ id: participants.id })
+    .from(participants)
+    .where(and(eq(participants.eventId, eventId), eq(participants.name, normalizedName)));
 
-    await tx.insert(participants).values({
-      id: participantId,
-      eventId,
-      name: normalizedName,
-    });
+  const existingParticipantIds = existingParticipants.map((participant) => participant.id);
+  const participantId = crypto.randomUUID();
 
-    await tx.insert(timeSlots).values(
-      validatedSlots.map((slot) => ({
-        id: crypto.randomUUID(),
-        participantId,
-        date: slot.date,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-      }))
-    );
-  });
+  if (existingParticipantIds.length > 0) {
+    await db.batch([
+      db.delete(timeSlots).where(inArray(timeSlots.participantId, existingParticipantIds)),
+      db.delete(participants).where(inArray(participants.id, existingParticipantIds)),
+      db.insert(participants).values({
+        id: participantId,
+        eventId,
+        name: normalizedName,
+      }),
+      db.insert(timeSlots).values(
+        validatedSlots.map((slot) => ({
+          id: crypto.randomUUID(),
+          participantId,
+          date: slot.date,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        }))
+      ),
+    ]);
+  } else {
+    await db.batch([
+      db.insert(participants).values({
+        id: participantId,
+        eventId,
+        name: normalizedName,
+      }),
+      db.insert(timeSlots).values(
+        validatedSlots.map((slot) => ({
+          id: crypto.randomUUID(),
+          participantId,
+          date: slot.date,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        }))
+      ),
+    ]);
+  }
 
   return true;
 }

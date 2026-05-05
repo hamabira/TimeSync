@@ -23,6 +23,8 @@ function buildRowKey(date: Date, hour: number) {
   return `${date.getTime()}-${hour}`;
 }
 
+const heatmapGridColumns = `180px repeat(${SCHEDULE_HOURS.length}, minmax(0, 1fr))`;
+
 export function TimeBandHeatmap({
   rows,
   participantCount,
@@ -40,10 +42,7 @@ export function TimeBandHeatmap({
   return (
     <div className="overflow-x-auto">
       <div className="min-w-[920px] space-y-2">
-        <div
-          className="grid items-center gap-1 text-xs font-medium text-slate-500"
-          style={{ gridTemplateColumns: "180px repeat(18, minmax(0, 1fr))" }}
-        >
+        <div className="grid items-center gap-1 text-xs font-medium text-slate-500" style={{ gridTemplateColumns: heatmapGridColumns }}>
           <div className="sticky left-0 z-20 rounded-l-lg bg-slate-50 px-4 py-3 text-slate-600">
             日付
           </div>
@@ -69,9 +68,9 @@ export function TimeBandHeatmap({
             return (
               <div
                 key={row.date.getTime()}
-                id={`time-band-${bestKey ?? row.date.getTime()}`}
+                id={`time-band-${row.date.getTime()}`}
                 className="grid gap-1"
-                style={{ gridTemplateColumns: "180px repeat(18, minmax(0, 1fr))" }}
+                style={{ gridTemplateColumns: heatmapGridColumns }}
               >
                 <div className="sticky left-0 z-10 flex flex-col justify-center rounded-l-xl border border-slate-200 bg-white px-4 py-3 shadow-[1px_0_0_0_#e2e8f0]">
                   <div className="text-sm font-semibold text-slate-800">

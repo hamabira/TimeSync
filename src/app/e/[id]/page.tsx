@@ -81,12 +81,6 @@ function createDefaultSlot(date: Date): TimeSlotDraft {
   };
 }
 
-function getRowKey(row: TimeBandRow) {
-  return row.bestSegment
-    ? `${row.date.getTime()}-${row.bestSegment.startHour}`
-    : `${row.date.getTime()}-0`;
-}
-
 export default function EventPage() {
   const params = useParams();
   const eventId = params.id as string;
@@ -142,8 +136,8 @@ export default function EventPage() {
       return;
     }
 
-    const bandKey = getRowKey(row);
-    const element = document.getElementById(`time-band-${bandKey}`);
+    const bandKey = `${row.date.getTime()}-${row.bestSegment.startHour}`;
+    const element = document.getElementById(`time-band-${row.date.getTime()}`);
 
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -159,7 +153,7 @@ export default function EventPage() {
     }
 
     const bandKey = `${candidate.date.getTime()}-${candidate.startHour}`;
-    const element = document.getElementById(`time-band-${bandKey}`);
+    const element = document.getElementById(`time-band-${candidate.date.getTime()}`);
 
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
