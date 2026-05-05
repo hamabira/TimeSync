@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { createEvent } from "@/app/actions";
 import { ja } from "date-fns/locale";
-import { Calendar as CalendarIcon, CalendarDays, Clock, Users } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -15,65 +17,56 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 
 export default function Home() {
+  const router = useRouter();
   const [eventName, setEventName] = useState("");
   const [description, setDescription] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(),
     to: new Date(new Date().setDate(new Date().getDate() + 7)),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!eventName || !date?.from || !date?.to) return;
-    // TODO: DB連携時に実装 (Cloudflare D1)
-    console.log({ eventName, description, date });
-    alert(`イベント作成（モック）\n${eventName}\n期間: ${format(date.from, "yyyy/MM/dd")} 〜 ${format(date.to, "yyyy/MM/dd")}`);
+    if (!eventName || !date?.from || !date?.to || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      const eventId = await createEvent({
+        name: eventName,
+        description,
+        startDate: date.from,
+        endDate: date.to,
+      });
+      router.push(`/e/${eventId}`);
+    } catch (error) {
+      console.error(error);
+      alert("イベントの作成に失敗しました。");
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-12 py-8">
-      {/* Hero Section */}
-      <section className="text-center space-y-4">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
-          みんなの予定を、もっと<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">スマートに</span>
+    <div className="mx-auto max-w-4xl space-y-8 py-8">
+      <section className="space-y-3">
+        <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
+          <CalendarIcon className="h-4 w-4" />
+          調整さんより見やすく、決めやすく
+        </div>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
+          みんなの予定を、ひと目で合わせる
         </h1>
-        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-          TimeSyncは、次世代の日程調整アプリです。
-          幹事は「対象の期間」を選ぶだけ。参加者全員で空いている日を持ち寄る新しいスタイルで、スケジュール調整の負担をゼロにします。
+        <p className="max-w-2xl text-base leading-7 text-slate-600">
+          TimeSync は、候補時間と重なり具合がすぐ分かる日程調整ツールです。
+          幹事は対象期間を決めるだけで、参加者は空いている日と時間を送れます。
         </p>
       </section>
 
-      {/* Features */}
-      <section className="grid sm:grid-cols-3 gap-6 text-center">
-        <div className="p-4 rounded-2xl bg-white shadow-sm border border-slate-100 flex flex-col items-center hover:shadow-md transition-shadow">
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-3">
-            <CalendarDays size={24} />
-          </div>
-          <h3 className="font-semibold text-slate-900">幹事の負担ゼロ</h3>
-          <p className="text-sm text-slate-500 mt-1">候補日を1つずつ入力する手間は不要。対象となる「期間」だけを選んでURLを共有するだけ。</p>
-        </div>
-        <div className="p-4 rounded-2xl bg-white shadow-sm border border-slate-100 flex flex-col items-center hover:shadow-md transition-shadow">
-          <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 mb-3">
-            <Clock size={24} />
-          </div>
-          <h3 className="font-semibold text-slate-900">細やかな時間指定</h3>
-          <p className="text-sm text-slate-500 mt-1">参加者は自分の空いている日付と「時間帯」を直感的に選んで提案できます。</p>
-        </div>
-        <div className="p-4 rounded-2xl bg-white shadow-sm border border-slate-100 flex flex-col items-center hover:shadow-md transition-shadow">
-          <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 mb-3">
-            <Users size={24} />
-          </div>
-          <h3 className="font-semibold text-slate-900">最適な日がすぐ分かる</h3>
-          <p className="text-sm text-slate-500 mt-1">みんなの予定が重なっている日時が自動でハイライトされ、一目で決まります。</p>
-        </div>
-      </section>
-
-      {/* Creation Form */}
-      <Card className="shadow-lg border-0 ring-1 ring-slate-200 overflow-hidden">
+      <Card className="overflow-hidden border-0 shadow-lg ring-1 ring-slate-200">
         <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-6">
           <CardTitle className="text-2xl font-bold text-slate-800">新しくイベントを作る</CardTitle>
           <CardDescription className="text-base text-slate-500">
-            イベント名と対象期間を入力して、「作成する」ボタンを押してください。
+            イベント名と対象期間を入力して、共有URLを作成してください。
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-8">
@@ -167,9 +160,9 @@ export default function Home() {
           <Button 
             className="w-full h-14 text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md transition-all active:scale-[0.98]"
             onClick={handleSubmit}
-            disabled={!eventName || !date?.from || !date?.to}
+            disabled={!eventName || !date?.from || !date?.to || isSubmitting}
           >
-            イベントを作成する
+            {isSubmitting ? "作成中..." : "イベントを作成する"}
           </Button>
         </CardFooter>
       </Card>
