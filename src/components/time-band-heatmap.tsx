@@ -8,6 +8,8 @@ import {
   formatShortHour,
   getHeatmapCellClass,
   getTimeBandKey,
+  getBandSegmentAtHour,
+  isCellWithinBand,
   SCHEDULE_HOURS,
   type TimeBandRow,
   type TimeBandSegment,
@@ -18,7 +20,7 @@ type TimeBandHeatmapProps = {
   rows: TimeBandRow[];
   participantCount: number;
   highlightedKey: string | null;
-  selectedBandKey: string | null;
+  selectedBand: TimeBandSegment | null;
   onSelectBand: (band: TimeBandSegment | null) => void;
 };
 
@@ -28,7 +30,7 @@ export function TimeBandHeatmap({
   rows,
   participantCount,
   highlightedKey,
-  selectedBandKey,
+  selectedBand,
   onSelectBand,
 }: TimeBandHeatmapProps) {
   if (rows.length === 0) {
@@ -86,13 +88,16 @@ export function TimeBandHeatmap({
                 {row.cells.map((cell) => {
                   const cellKey = getTimeBandKey(row.date, cell.hour);
                   const isHighlighted =
-                    highlightedKey === cellKey || selectedBandKey === cellKey || bestKey === cellKey;
+                    highlightedKey === cellKey ||
+                    isCellWithinBand(row, cell.hour, selectedBand) ||
+                    isCellWithinBand(row, cell.hour, row.bestSegment) ||
+                    bestKey === cellKey;
 
                   return (
                     <button
                       key={cell.hour}
                       type="button"
-                      onClick={() => onSelectBand(row.bestSegment)}
+                      onClick={() => onSelectBand(getBandSegmentAtHour(row, cell.hour))}
                       className={cn(
                         "group relative h-12 rounded-md border border-transparent transition-all",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 focus-visible:ring-offset-1",

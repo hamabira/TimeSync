@@ -633,7 +633,7 @@ export default function EventPage() {
             rows={rows}
             participantCount={responseCount}
             highlightedKey={highlightedKey}
-            selectedBandKey={selectedBandKey}
+            selectedBand={selectedBand}
             onSelectBand={openBand}
           />
         </CardContent>
