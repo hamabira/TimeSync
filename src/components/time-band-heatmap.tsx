@@ -63,8 +63,6 @@ export function TimeBandHeatmap({
 
         <div className="space-y-2">
           {rows.map((row) => {
-            const bestKey = row.bestSegment ? getTimeBandKey(row.date, row.bestSegment.startHour) : null;
-
             return (
               <div
                 key={row.date.getTime()}
@@ -89,9 +87,7 @@ export function TimeBandHeatmap({
                   const cellKey = getTimeBandKey(row.date, cell.hour);
                   const isHighlighted =
                     highlightedKey === cellKey ||
-                    isCellWithinBand(row, cell.hour, selectedBand) ||
-                    isCellWithinBand(row, cell.hour, row.bestSegment) ||
-                    bestKey === cellKey;
+                    isCellWithinBand(row, cell.hour, selectedBand);
 
                   return (
                     <button

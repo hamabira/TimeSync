@@ -84,9 +84,6 @@ function createDefaultSlot(date: Date): TimeSlotDraft {
   };
 }
 
-function getInitialBand(participants: EventWithParticipants["participants"]) {
-  return buildTopSegments(buildTimeBandRows(participants))[0] ?? null;
-}
 export default function EventPage() {
   const params = useParams();
   const eventId = params.id as string;
@@ -114,7 +111,6 @@ export default function EventPage() {
           const hydrated = hydrateEventData(data);
           setEventData(hydrated.event);
           setParticipantsData(hydrated.participants);
-          setSelectedBand(getInitialBand(hydrated.participants));
         }
 
         setIsLoading(false);
@@ -254,7 +250,6 @@ export default function EventPage() {
       if (data) {
         const hydrated = hydrateEventData(data);
         setParticipantsData(hydrated.participants);
-        setSelectedBand((current) => current ?? getInitialBand(hydrated.participants));
       }
 
       setUserName("");
@@ -580,8 +575,6 @@ export default function EventPage() {
                         "hover:-translate-y-0.5 hover:shadow-md",
                         selectedBandKey === candidateKey
                           ? "border-blue-500 bg-blue-50/70"
-                          : index === 0
-                          ? "border-blue-500 bg-blue-50/60"
                           : "border-slate-200 bg-white hover:border-blue-300"
                       )}
                       onClick={() => openBand(candidate)}
@@ -591,7 +584,7 @@ export default function EventPage() {
                           <div
                             className={cn(
                               "text-xs font-bold",
-                              index === 0 ? "text-blue-600" : "text-slate-500"
+                              "text-slate-500"
                             )}
                           >
                             第{index + 1}候補
@@ -603,9 +596,7 @@ export default function EventPage() {
                         <div
                           className={cn(
                             "rounded-full px-3 py-1 text-sm font-semibold",
-                            index === 0
-                              ? "bg-blue-600 text-white"
-                              : "bg-slate-100 text-slate-700"
+                            "bg-slate-100 text-slate-700"
                           )}
                         >
                           {candidate.count} 人
