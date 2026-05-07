@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
+import { normalizeDateOnly } from "@/lib/scheduling";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
@@ -22,21 +23,21 @@ export default function Home() {
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: new Date(new Date().setDate(new Date().getDate() + 7)),
+    from: normalizeDateOnly(new Date()),
+    to: normalizeDateOnly(new Date(new Date().setDate(new Date().getDate() + 7))),
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventName || !date?.from || !date?.to || isSubmitting) return;
-    
+
     setIsSubmitting(true);
     try {
       const eventId = await createEvent({
         name: eventName,
         description,
-        startDate: date.from,
-        endDate: date.to,
+        startDate: normalizeDateOnly(date.from),
+        endDate: normalizeDateOnly(date.to),
       });
       router.push(`/e/${eventId}`);
     } catch (error) {

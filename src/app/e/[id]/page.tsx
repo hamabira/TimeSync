@@ -35,6 +35,7 @@ import {
   formatHourRange,
   getTimeBandKey,
   normalizeParticipantName,
+  normalizeDateOnly,
   type EventWithParticipants,
   type TimeBandSegment,
 } from "@/lib/scheduling";
@@ -60,15 +61,15 @@ function hydrateEventData(data: EventWithParticipants) {
   return {
     event: {
       ...data.event,
-      startDate: new Date(data.event.startDate),
-      endDate: new Date(data.event.endDate),
+      startDate: normalizeDateOnly(new Date(data.event.startDate)),
+      endDate: normalizeDateOnly(new Date(data.event.endDate)),
       createdAt: new Date(data.event.createdAt),
     },
     participants: data.participants.map((participant) => ({
       ...participant,
       timeSlots: participant.timeSlots.map((slot) => ({
         ...slot,
-        date: new Date(slot.date),
+        date: normalizeDateOnly(new Date(slot.date)),
       })),
     })),
   } satisfies EventWithParticipants;
@@ -77,7 +78,7 @@ function hydrateEventData(data: EventWithParticipants) {
 function createDefaultSlot(date: Date): TimeSlotDraft {
   return {
     id: crypto.randomUUID(),
-    date,
+    date: normalizeDateOnly(date),
     startTime: "19:00",
     endTime: "21:00",
   };
@@ -161,12 +162,14 @@ export default function EventPage() {
     const nextDates = dates ?? [];
 
     setTimeSlots((previous) => {
+      const normalizedDates = nextDates.map((date) => normalizeDateOnly(date));
+
       const kept = previous.filter((slot) =>
-        nextDates.some((date) => date.getTime() === slot.date.getTime())
+        normalizedDates.some((date) => date.getTime() === slot.date.getTime())
       );
 
       const keptDates = new Set(kept.map((slot) => slot.date.getTime()));
-      const additions = nextDates
+      const additions = normalizedDates
         .filter((date) => !keptDates.has(date.getTime()))
         .map((date) => createDefaultSlot(date));
 
@@ -366,9 +369,12 @@ export default function EventPage() {
                   selected={selectedDates}
                   onSelect={handleSelectDates}
                   defaultMonth={eventData.startDate}
-                  fromDate={eventData.startDate}
-                  toDate={eventData.endDate}
-                  disabled={[{ before: eventData.startDate, after: eventData.endDate }]}
+                  startMonth={eventData.startDate}
+                  endMonth={eventData.endDate}
+                  disabled={[
+                    { before: eventData.startDate },
+                    { after: eventData.endDate },
+                  ]}
                   numberOfMonths={1}
                   showOutsideDays={true}
                   fixedWeeks={true}

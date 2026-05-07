@@ -92,6 +92,39 @@ export function formatShortHour(hour: number) {
   return `${String(hour).padStart(2, "0")}:00`;
 }
 
+export function normalizeDateOnly(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+export function compareDateOnly(left: Date, right: Date) {
+  const leftKey = normalizeDateOnly(left).getTime();
+  const rightKey = normalizeDateOnly(right).getTime();
+
+  if (leftKey < rightKey) return -1;
+  if (leftKey > rightKey) return 1;
+  return 0;
+}
+
+const tokyoDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Tokyo",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+export function getTokyoDateKey(date: Date) {
+  const parts = tokyoDateFormatter.formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  if (!year || !month || !day) {
+    throw new Error("日付キーの生成に失敗しました。");
+  }
+
+  return `${year}-${month}-${day}`;
+}
+
 export function getTimeBandKey(date: Date, startHour: number) {
   return `${date.getTime()}-${startHour}`;
 }
