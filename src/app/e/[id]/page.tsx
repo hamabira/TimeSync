@@ -334,8 +334,8 @@ export default function EventPage() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
-        <Card className="shadow-sm ring-1 ring-slate-200">
-          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4">
+        <Card className="shadow-sm ring-2 ring-slate-200">
+          <CardHeader className="border-b-2 border-slate-200 bg-slate-50/70 pb-4">
             <CardTitle className="text-xl font-bold text-slate-800">
               1. 空いている日を選ぶ
             </CardTitle>
@@ -382,7 +382,7 @@ export default function EventPage() {
               <div className="space-y-4">
                 <Label className="text-base font-semibold text-slate-700">選択した日程</Label>
                 {selectedDates.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-400">
+                  <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-400">
                     左のカレンダーから日付を選んでください
                   </div>
                 ) : (
@@ -395,9 +395,9 @@ export default function EventPage() {
                       return (
                         <div
                           key={date.toISOString()}
-                          className="rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+                          className="rounded-xl border-2 border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
                         >
-                          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                          <div className="flex items-center justify-between border-b-2 border-slate-200 px-4 py-3">
                             <div className="font-semibold text-slate-800">
                               {format(date, "M月d日(E)", { locale: ja })}
                             </div>
@@ -458,7 +458,7 @@ export default function EventPage() {
                 )}
               </div>
 
-              <div className="space-y-3 border-t border-slate-100 pt-6">
+              <div className="space-y-3 border-t-2 border-slate-200 pt-6">
                 <div className="flex items-center justify-between max-w-sm">
                   <Label htmlFor="userName" className="text-base font-semibold text-slate-700">
                     お名前 <span className="text-red-500">*</span>
@@ -476,7 +476,7 @@ export default function EventPage() {
                 />
               </div>
             </CardContent>
-            <CardFooter className="border-t border-slate-100 bg-slate-50/70 p-6">
+            <CardFooter className="border-t-2 border-slate-200 bg-slate-50/70 p-6">
               <Button
                 type="submit"
                 className="h-12 w-full px-8 text-base font-bold"
@@ -491,15 +491,15 @@ export default function EventPage() {
           </form>
         </Card>
 
-        <Card className="h-fit shadow-sm ring-1 ring-slate-200 lg:sticky lg:top-24">
-          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4">
+        <Card className="h-fit shadow-sm ring-2 ring-slate-200 lg:sticky lg:top-24">
+          <CardHeader className="border-b-2 border-slate-200 bg-slate-50/70 pb-4">
             <CardTitle className="text-xl font-bold text-slate-800">2. 候補を一目で見る</CardTitle>
             <CardDescription>
               参加可能人数が多い時間帯を、横バー型のヒートマップで表示します。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 pt-6">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="rounded-xl border-2 border-slate-200 bg-slate-50 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="text-sm font-semibold text-slate-700">選択中の帯</div>
@@ -511,8 +511,25 @@ export default function EventPage() {
                       <div className="mt-1 text-base font-bold text-slate-900">
                         {formatBandSummary(selectedBand)}
                       </div>
-                      <div className="mt-2 text-sm text-slate-600">
-                        {selectedBand.attendeeNames.join("、")}
+                      <div className="mt-3 space-y-2">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                          参加者
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedBand.attendeeNames.slice(0, 3).map((name) => (
+                            <span
+                              key={name}
+                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
+                            >
+                              {name}
+                            </span>
+                          ))}
+                          {selectedBand.attendeeNames.length > 3 ? (
+                            <span className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500">
+                              +{selectedBand.attendeeNames.length - 3}人
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                     </>
                   ) : (
@@ -558,20 +575,22 @@ export default function EventPage() {
             </div>
 
             {candidates.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-400">
+              <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-400">
                 まだ候補はありません。回答が入ると上位候補が表示されます。
               </div>
             ) : (
               <div className="space-y-3">
                 {candidates.map((candidate, index) => {
                   const candidateKey = `${candidate.date.getTime()}-${candidate.startHour}`;
+                  const attendeePreview = candidate.attendeeNames.slice(0, 3);
+                  const attendeeOverflow = candidate.attendeeNames.length - attendeePreview.length;
 
                   return (
                     <button
                       key={candidateKey}
                       type="button"
                       className={cn(
-                        "w-full rounded-xl border p-4 text-left transition-all",
+                        "w-full rounded-xl border-2 p-4 text-left transition-all",
                         "hover:-translate-y-0.5 hover:shadow-md",
                         selectedBandKey === candidateKey
                           ? "border-blue-500 bg-blue-50/70"
@@ -606,8 +625,25 @@ export default function EventPage() {
                         <Clock3 className="h-4 w-4" />
                         {formatHourRange(candidate.startHour, candidate.endHour)}
                       </div>
-                      <div className="mt-2 text-sm text-slate-500">
-                        {candidate.attendeeNames.join("、")}
+                      <div className="mt-3 space-y-2">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                          参加者
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {attendeePreview.map((name) => (
+                            <span
+                              key={name}
+                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
+                            >
+                              {name}
+                            </span>
+                          ))}
+                          {attendeeOverflow > 0 ? (
+                            <span className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500">
+                              +{attendeeOverflow}人
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                     </button>
                   );
@@ -618,8 +654,8 @@ export default function EventPage() {
         </Card>
       </div>
 
-        <Card className="shadow-sm ring-1 ring-slate-200">
-          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4">
+        <Card className="shadow-sm ring-2 ring-slate-200">
+          <CardHeader className="border-b-2 border-slate-200 bg-slate-50/70 pb-4">
             <CardTitle className="text-xl font-bold text-slate-800">みんなの回答状況</CardTitle>
             <CardDescription>
               横に流れる時間帯の帯で、重なりやすい時間がすぐ分かります。

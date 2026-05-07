@@ -22,7 +22,7 @@ export default function RootLayout({
             'Inter, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif',
         }}
       >
-        <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
+        <header className="sticky top-0 z-50 w-full border-b-2 border-slate-200 bg-white/80 backdrop-blur-md">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">TimeSync</span>
@@ -32,7 +32,7 @@ export default function RootLayout({
         <main className="flex-1 container mx-auto px-4 py-8">
           {children}
         </main>
-        <footer className="py-6 border-t bg-white">
+        <footer className="py-6 border-t-2 border-slate-200 bg-white">
           <div className="container mx-auto px-4 text-center text-sm text-slate-500">
             &copy; {new Date().getFullYear()} TimeSync. All rights reserved.
           </div>

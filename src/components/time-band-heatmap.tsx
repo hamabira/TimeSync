@@ -35,7 +35,7 @@ export function TimeBandHeatmap({
 }: TimeBandHeatmapProps) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500">
+      <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500">
         まだ回答がありません。最初の回答を入力すると、候補時間の帯が表示されます。
       </div>
     );
@@ -70,7 +70,7 @@ export function TimeBandHeatmap({
                 className="grid gap-1"
                 style={{ gridTemplateColumns: heatmapGridColumns }}
               >
-                <div className="sticky left-0 z-10 flex flex-col justify-center rounded-l-xl border border-slate-200 bg-white px-4 py-3 shadow-[1px_0_0_0_#e2e8f0]">
+                <div className="sticky left-0 z-10 flex flex-col justify-center rounded-l-xl border-2 border-slate-200 bg-white px-4 py-3 shadow-[1px_0_0_0_#cbd5e1]">
                   <div className="text-sm font-semibold text-slate-800">
                     {format(row.date, "M/d (E)", { locale: ja })}
                   </div>
@@ -95,8 +95,8 @@ export function TimeBandHeatmap({
                       type="button"
                       onClick={() => onSelectBand(getBandSegmentAtHour(row, cell.hour))}
                       className={cn(
-                        "group relative h-12 rounded-md border border-transparent transition-all",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 focus-visible:ring-offset-1",
+                        "group relative h-12 rounded-md border-2 border-transparent transition-all",
+                        "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/40 focus-visible:ring-offset-1",
                         getHeatmapCellClass(cell.count, participantCount),
                         isHighlighted && "ring-2 ring-blue-500 ring-offset-1"
                       )}
