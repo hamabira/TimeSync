@@ -7,6 +7,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import {
   EventWithParticipants,
+  getTokyoDateKey,
   normalizeParticipantName,
   timeStringToMinutes,
 } from "@/lib/scheduling";
@@ -153,9 +154,13 @@ export async function submitResponse(
   }
 
   const event = eventResult[0];
+  const eventStartKey = getTokyoDateKey(event.startDate);
+  const eventEndKey = getTokyoDateKey(event.endDate);
 
   for (const slot of validatedSlots) {
-    if (slot.date.getTime() < event.startDate.getTime() || slot.date.getTime() > event.endDate.getTime()) {
+    const slotKey = getTokyoDateKey(slot.date);
+
+    if (slotKey < eventStartKey || slotKey > eventEndKey) {
       throw new Error("日付が対象期間の範囲外です。");
     }
   }
@@ -164,7 +169,6 @@ export async function submitResponse(
     .select({ id: participants.id })
     .from(participants)
     .where(and(eq(participants.eventId, eventId), eq(participants.name, normalizedName)));
-
   const existingParticipantIds = existingParticipants.map((participant) => participant.id);
   const participantId = crypto.randomUUID();
 

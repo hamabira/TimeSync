@@ -52,6 +52,10 @@ export type TimeBandRow = {
   bestSegment: TimeBandSegment | null;
 };
 
+function getAttendeeKey(attendeeNames: string[]) {
+  return attendeeNames.join("、");
+}
+
 export function normalizeParticipantName(name: string) {
   return name.trim().replace(/\s+/g, " ");
 }
@@ -86,6 +90,55 @@ export function formatHourRange(startHour: number, endHour: number) {
 
 export function formatShortHour(hour: number) {
   return `${String(hour).padStart(2, "0")}:00`;
+}
+
+export function normalizeDateOnly(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+export function compareDateOnly(left: Date, right: Date) {
+  const leftKey = normalizeDateOnly(left).getTime();
+  const rightKey = normalizeDateOnly(right).getTime();
+
+  if (leftKey < rightKey) return -1;
+  if (leftKey > rightKey) return 1;
+  return 0;
+}
+
+const tokyoDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Tokyo",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+export function getTokyoDateKey(date: Date) {
+  const parts = tokyoDateFormatter.formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  if (!year || !month || !day) {
+    throw new Error("日付キーの生成に失敗しました。");
+  }
+
+  return `${year}-${month}-${day}`;
+}
+
+export function getTimeBandKey(date: Date, startHour: number) {
+  return `${date.getTime()}-${startHour}`;
+}
+
+export function formatBandSummary(segment: TimeBandSegment) {
+  return `${formatShortHour(segment.startHour)} - ${formatShortHour(segment.endHour)} / ${segment.count}人参加可能`;
+}
+
+export function formatParticipantLine(attendeeNames: string[]) {
+  if (attendeeNames.length === 0) {
+    return "参加者: なし";
+  }
+
+  return `参加者: ${attendeeNames.join("、")}`;
 }
 
 export function getHeatmapCellClass(count: number, participantCount: number) {
@@ -163,9 +216,7 @@ export function buildTimeBandRows(participants: ParticipantRecord[]): TimeBandRo
           };
         }
 
-        const sameGroup =
-          best.attendeeNames.join("、") === cell.attendeeNames.join("、") &&
-          best.endHour === cell.hour;
+        const sameGroup = getAttendeeKey(best.attendeeNames) === getAttendeeKey(cell.attendeeNames) && best.endHour === cell.hour;
 
         const candidate = sameGroup
           ? {
@@ -227,7 +278,7 @@ export function buildTopSegments(rows: TimeBandRow[]) {
 
       if (
         current &&
-        current.attendeeNames.join("、") === cell.attendeeNames.join("、") &&
+        getAttendeeKey(current.attendeeNames) === getAttendeeKey(cell.attendeeNames) &&
         current.endHour === cell.hour
       ) {
         current = {
@@ -273,4 +324,78 @@ export function buildTopSegments(rows: TimeBandRow[]) {
 
     return left.startHour - right.startHour;
   });
+}
+
+export function getBandSegmentAtHour(row: TimeBandRow, hour: number) {
+  const cell = row.cells.find((entry) => entry.hour === hour);
+
+  if (!cell || cell.count === 0) {
+    return null;
+  }
+
+  const segmentCells = row.cells.filter(
+    (entry) => entry.count > 0 && getAttendeeKey(entry.attendeeNames) === getAttendeeKey(cell.attendeeNames)
+  );
+
+  const startCell = segmentCells.find((entry) => entry.hour <= hour && hour < entry.hour + 1);
+  if (!startCell) {
+    return null;
+  }
+
+  let startHour = startCell.hour;
+  let endHour = startCell.hour + 1;
+
+  for (let index = row.cells.findIndex((entry) => entry.hour === startHour) - 1; index >= 0; index--) {
+    const previous = row.cells[index];
+
+    if (
+      previous.count > 0 &&
+      getAttendeeKey(previous.attendeeNames) === getAttendeeKey(cell.attendeeNames) &&
+      previous.hour + 1 === startHour
+    ) {
+      startHour = previous.hour;
+    } else {
+      break;
+    }
+  }
+
+  for (let index = row.cells.findIndex((entry) => entry.hour === endHour); index < row.cells.length; index++) {
+    const next = row.cells[index];
+
+    if (
+      next.count > 0 &&
+      getAttendeeKey(next.attendeeNames) === getAttendeeKey(cell.attendeeNames) &&
+      next.hour === endHour
+    ) {
+      endHour = next.hour + 1;
+    } else {
+      break;
+    }
+  }
+
+  return {
+    date: row.date,
+    startHour,
+    endHour,
+    attendeeNames: cell.attendeeNames,
+    count: cell.count,
+  };
+}
+
+export function isCellWithinBand(row: TimeBandRow, hour: number, segment: TimeBandSegment | null) {
+  if (!segment || row.date.getTime() !== segment.date.getTime()) {
+    return false;
+  }
+
+  const cell = row.cells.find((entry) => entry.hour === hour);
+  if (!cell || cell.count === 0) {
+    return false;
+  }
+
+  return (
+    hour >= segment.startHour &&
+    hour < segment.endHour &&
+    cell.count === segment.count &&
+    getAttendeeKey(cell.attendeeNames) === getAttendeeKey(segment.attendeeNames)
+  );
 }

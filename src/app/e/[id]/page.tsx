@@ -31,10 +31,14 @@ import { getEventWithParticipants, submitResponse } from "@/app/actions";
 import {
   buildTimeBandRows,
   buildTopSegments,
+  formatBandSummary,
   formatHourRange,
+  formatParticipantLine,
+  getTimeBandKey,
   normalizeParticipantName,
+  normalizeDateOnly,
   type EventWithParticipants,
-  type TimeBandRow,
+  type TimeBandSegment,
 } from "@/lib/scheduling";
 import { cn } from "@/lib/utils";
 
@@ -58,15 +62,15 @@ function hydrateEventData(data: EventWithParticipants) {
   return {
     event: {
       ...data.event,
-      startDate: new Date(data.event.startDate),
-      endDate: new Date(data.event.endDate),
+      startDate: normalizeDateOnly(new Date(data.event.startDate)),
+      endDate: normalizeDateOnly(new Date(data.event.endDate)),
       createdAt: new Date(data.event.createdAt),
     },
     participants: data.participants.map((participant) => ({
       ...participant,
       timeSlots: participant.timeSlots.map((slot) => ({
         ...slot,
-        date: new Date(slot.date),
+        date: normalizeDateOnly(new Date(slot.date)),
       })),
     })),
   } satisfies EventWithParticipants;
@@ -75,7 +79,7 @@ function hydrateEventData(data: EventWithParticipants) {
 function createDefaultSlot(date: Date): TimeSlotDraft {
   return {
     id: crypto.randomUUID(),
-    date,
+    date: normalizeDateOnly(date),
     startTime: "19:00",
     endTime: "21:00",
   };
@@ -91,8 +95,12 @@ export default function EventPage() {
   const [userName, setUserName] = useState("");
   const [timeSlots, setTimeSlots] = useState<TimeSlotDraft[]>([]);
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
+  const [selectedBand, setSelectedBand] = useState<TimeBandSegment | null>(null);
+  const [expandedSelectedBand, setExpandedSelectedBand] = useState(false);
+  const [expandedCandidateKey, setExpandedCandidateKey] = useState<string | null>(null);
   const [notice, setNotice] = useState<NoticeState>(null);
   const [copyState, setCopyState] = useState<CopyState>("idle");
+  const [bandCopyState, setBandCopyState] = useState<CopyState>("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -130,31 +138,22 @@ export default function EventPage() {
   const candidates = useMemo(() => buildTopSegments(rows).slice(0, 3), [rows]);
 
   const responseCount = participantsData.length;
+  const selectedBandKey = selectedBand ? getTimeBandKey(selectedBand.date, selectedBand.startHour) : null;
+  const selectedBandAttendeePreview = selectedBand ? selectedBand.attendeeNames.slice(0, 3) : [];
+  const selectedBandAttendeeOverflow = selectedBand
+    ? selectedBand.attendeeNames.length - selectedBandAttendeePreview.length
+    : 0;
 
-  const scrollToBand = (row: TimeBandRow) => {
-    if (!row.bestSegment) {
+  const openBand = (band: TimeBandSegment | null) => {
+    if (!band) {
       return;
     }
 
-    const bandKey = `${row.date.getTime()}-${row.bestSegment.startHour}`;
-    const element = document.getElementById(`time-band-${row.date.getTime()}`);
+    setSelectedBand(band);
+    setExpandedSelectedBand(false);
 
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-
-    setHighlightedKey(bandKey);
-    window.setTimeout(() => setHighlightedKey(null), 2000);
-  };
-
-  const scrollToCandidate = (candidate: TimeBandRow["bestSegment"]) => {
-    if (!candidate) {
-      return;
-    }
-
-    const bandKey = `${candidate.date.getTime()}-${candidate.startHour}`;
-    const element = document.getElementById(`time-band-${candidate.date.getTime()}`);
-
+    const bandKey = getTimeBandKey(band.date, band.startHour);
+    const element = document.getElementById(`time-band-${band.date.getTime()}`);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
@@ -167,12 +166,14 @@ export default function EventPage() {
     const nextDates = dates ?? [];
 
     setTimeSlots((previous) => {
+      const normalizedDates = nextDates.map((date) => normalizeDateOnly(date));
+
       const kept = previous.filter((slot) =>
-        nextDates.some((date) => date.getTime() === slot.date.getTime())
+        normalizedDates.some((date) => date.getTime() === slot.date.getTime())
       );
 
       const keptDates = new Set(kept.map((slot) => slot.date.getTime()));
-      const additions = nextDates
+      const additions = normalizedDates
         .filter((date) => !keptDates.has(date.getTime()))
         .map((date) => createDefaultSlot(date));
 
@@ -203,6 +204,28 @@ export default function EventPage() {
       console.error(error);
       setCopyState("error");
       window.setTimeout(() => setCopyState("idle"), 1800);
+    }
+  };
+
+  const handleCopyBandSummary = async () => {
+    if (!selectedBand) {
+      return;
+    }
+
+    const text = [
+      `候補時間: ${formatBandSummary(selectedBand)}`,
+      `日付: ${format(selectedBand.date, "yyyy/MM/dd (E)", { locale: ja })}`,
+      formatParticipantLine(selectedBand.attendeeNames),
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setBandCopyState("copied");
+      window.setTimeout(() => setBandCopyState("idle"), 1800);
+    } catch (error) {
+      console.error(error);
+      setBandCopyState("error");
+      window.setTimeout(() => setBandCopyState("idle"), 1800);
     }
   };
 
@@ -252,6 +275,14 @@ export default function EventPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const toggleCandidateExpansion = (candidateKey: string) => {
+    setExpandedCandidateKey((current) => (current === candidateKey ? null : candidateKey));
+  };
+
+  const toggleSelectedBandExpansion = () => {
+    setExpandedSelectedBand((current) => !current);
   };
 
   if (isLoading) {
@@ -319,8 +350,8 @@ export default function EventPage() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
-        <Card className="shadow-sm ring-1 ring-slate-200">
-          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4">
+        <Card className="shadow-sm ring-2 ring-slate-200">
+          <CardHeader className="border-b-2 border-slate-200 bg-slate-50/70 pb-4">
             <CardTitle className="text-xl font-bold text-slate-800">
               1. 空いている日を選ぶ
             </CardTitle>
@@ -349,9 +380,12 @@ export default function EventPage() {
                   selected={selectedDates}
                   onSelect={handleSelectDates}
                   defaultMonth={eventData.startDate}
-                  fromDate={eventData.startDate}
-                  toDate={eventData.endDate}
-                  disabled={[{ before: eventData.startDate, after: eventData.endDate }]}
+                  startMonth={eventData.startDate}
+                  endMonth={eventData.endDate}
+                  disabled={[
+                    { before: eventData.startDate },
+                    { after: eventData.endDate },
+                  ]}
                   numberOfMonths={1}
                   showOutsideDays={true}
                   fixedWeeks={true}
@@ -364,7 +398,7 @@ export default function EventPage() {
               <div className="space-y-4">
                 <Label className="text-base font-semibold text-slate-700">選択した日程</Label>
                 {selectedDates.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-400">
+                  <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-400">
                     左のカレンダーから日付を選んでください
                   </div>
                 ) : (
@@ -377,9 +411,9 @@ export default function EventPage() {
                       return (
                         <div
                           key={date.toISOString()}
-                          className="rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+                          className="rounded-xl border-2 border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
                         >
-                          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                          <div className="flex items-center justify-between border-b-2 border-slate-200 px-4 py-3">
                             <div className="font-semibold text-slate-800">
                               {format(date, "M月d日(E)", { locale: ja })}
                             </div>
@@ -420,15 +454,15 @@ export default function EventPage() {
                                     }
                                     className="h-9 w-28"
                                   />
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  type="button"
-                                  className="ml-auto text-slate-400 hover:bg-rose-50 hover:text-rose-500"
-                                  onClick={() => removeTimeSlot(slot.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    type="button"
+                                    className="ml-auto text-slate-400 hover:bg-rose-50 hover:text-rose-500"
+                                    onClick={() => removeTimeSlot(slot.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
                               ))
                             )}
@@ -440,7 +474,7 @@ export default function EventPage() {
                 )}
               </div>
 
-              <div className="space-y-3 border-t border-slate-100 pt-6">
+              <div className="space-y-3 border-t-2 border-slate-200 pt-6">
                 <div className="flex items-center justify-between max-w-sm">
                   <Label htmlFor="userName" className="text-base font-semibold text-slate-700">
                     お名前 <span className="text-red-500">*</span>
@@ -458,7 +492,7 @@ export default function EventPage() {
                 />
               </div>
             </CardContent>
-            <CardFooter className="border-t border-slate-100 bg-slate-50/70 p-6">
+            <CardFooter className="border-t-2 border-slate-200 bg-slate-50/70 p-6">
               <Button
                 type="submit"
                 className="h-12 w-full px-8 text-base font-bold"
@@ -473,47 +507,58 @@ export default function EventPage() {
           </form>
         </Card>
 
-        <Card className="h-fit shadow-sm ring-1 ring-slate-200 lg:sticky lg:top-24">
-          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4">
+        <Card className="h-fit shadow-sm ring-2 ring-slate-200 lg:sticky lg:top-24">
+          <CardHeader className="border-b-2 border-slate-200 bg-slate-50/70 pb-4">
             <CardTitle className="text-xl font-bold text-slate-800">2. 候補を一目で見る</CardTitle>
             <CardDescription>
               参加可能人数が多い時間帯を、横バー型のヒートマップで表示します。
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 pt-6">
+          <CardContent className="space-y-5 pt-6">
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <Link2 className="h-4 w-4" />
               第一候補から第三候補を上に並べています。
             </div>
 
             {candidates.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-400">
+              <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-400">
                 まだ候補はありません。回答が入ると上位候補が表示されます。
               </div>
             ) : (
               <div className="space-y-3">
                 {candidates.map((candidate, index) => {
                   const candidateKey = `${candidate.date.getTime()}-${candidate.startHour}`;
+                  const attendeePreview = candidate.attendeeNames.slice(0, 3);
+                  const attendeeOverflow = candidate.attendeeNames.length - attendeePreview.length;
+                  const isExpanded = expandedCandidateKey === candidateKey;
 
                   return (
-                    <button
+                    <div
                       key={candidateKey}
-                      type="button"
                       className={cn(
-                        "w-full rounded-xl border p-4 text-left transition-all",
+                        "w-full rounded-xl border-2 p-4 text-left transition-all",
+                        "cursor-pointer",
                         "hover:-translate-y-0.5 hover:shadow-md",
-                        index === 0
-                          ? "border-blue-500 bg-blue-50/60"
+                        selectedBandKey === candidateKey
+                          ? "border-blue-500 bg-blue-50/70"
                           : "border-slate-200 bg-white hover:border-blue-300"
                       )}
-                      onClick={() => scrollToCandidate(candidate)}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openBand(candidate)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          openBand(candidate);
+                        }
+                      }}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <div
                             className={cn(
                               "text-xs font-bold",
-                              index === 0 ? "text-blue-600" : "text-slate-500"
+                              "text-slate-500"
                             )}
                           >
                             第{index + 1}候補
@@ -525,9 +570,7 @@ export default function EventPage() {
                         <div
                           className={cn(
                             "rounded-full px-3 py-1 text-sm font-semibold",
-                            index === 0
-                              ? "bg-blue-600 text-white"
-                              : "bg-slate-100 text-slate-700"
+                            "bg-slate-100 text-slate-700"
                           )}
                         >
                           {candidate.count} 人
@@ -537,23 +580,147 @@ export default function EventPage() {
                         <Clock3 className="h-4 w-4" />
                         {formatHourRange(candidate.startHour, candidate.endHour)}
                       </div>
-                      <div className="mt-2 text-sm text-slate-500">
-                        {candidate.attendeeNames.join("、")}
+                      <div className="mt-3 space-y-2">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                          参加者
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {(isExpanded ? candidate.attendeeNames : attendeePreview).map((name) => (
+                            <span
+                              key={name}
+                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
+                            >
+                              {name}
+                            </span>
+                          ))}
+                          {attendeeOverflow > 0 && !isExpanded ? (
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                toggleCandidateExpansion(candidateKey);
+                              }}
+                            >
+                              +{attendeeOverflow}人
+                            </button>
+                          ) : null}
+                          {isExpanded && attendeeOverflow > 0 ? (
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                toggleCandidateExpansion(candidateKey);
+                              }}
+                            >
+                              閉じる
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
             )}
+
+            <div className="rounded-xl border-2 border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-slate-700">選択中の帯</div>
+                  {selectedBand ? (
+                    <>
+                      <div className="mt-2 text-sm text-slate-600">
+                        {format(selectedBand.date, "M/d (E)", { locale: ja })}
+                      </div>
+                      <div className="mt-1 text-base font-bold text-slate-900">
+                        {formatBandSummary(selectedBand)}
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                          参加者
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {(expandedSelectedBand ? selectedBand.attendeeNames : selectedBandAttendeePreview).map(
+                            (name) => (
+                              <span
+                                key={name}
+                                className="inline-flex items-center rounded-full border-2 border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
+                              >
+                                {name}
+                              </span>
+                            )
+                          )}
+                          {selectedBandAttendeeOverflow > 0 && !expandedSelectedBand ? (
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
+                              onClick={toggleSelectedBandExpansion}
+                            >
+                              +{selectedBandAttendeeOverflow}人
+                            </button>
+                          ) : null}
+                          {selectedBandAttendeeOverflow > 0 && expandedSelectedBand ? (
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
+                              onClick={toggleSelectedBandExpansion}
+                            >
+                              閉じる
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="mt-2 text-sm text-slate-500">
+                      帯を選ぶと詳細がここに表示されます。
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={handleCopyBandSummary}
+                    disabled={!selectedBand}
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    コピー
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    type="button"
+                    onClick={() => {
+                      setSelectedBand(null);
+                      setExpandedSelectedBand(false);
+                    }}
+                    disabled={!selectedBand}
+                  >
+                    解除
+                  </Button>
+                </div>
+              </div>
+              <div className="mt-3 text-xs text-slate-500">
+                {bandCopyState === "copied"
+                  ? "候補文をコピーしました。"
+                  : bandCopyState === "error"
+                    ? "コピーに失敗しました。"
+                    : "候補文はそのままチャットに貼れます。"}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="shadow-sm ring-1 ring-slate-200">
-        <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4">
-          <CardTitle className="text-xl font-bold text-slate-800">みんなの回答状況</CardTitle>
-          <CardDescription>
-            横に流れる時間帯の帯で、重なりやすい時間がすぐ分かります。
+        <Card className="shadow-sm ring-2 ring-slate-200">
+          <CardHeader className="border-b-2 border-slate-200 bg-slate-50/70 pb-4">
+            <CardTitle className="text-xl font-bold text-slate-800">みんなの回答状況</CardTitle>
+            <CardDescription>
+              横に流れる時間帯の帯で、重なりやすい時間がすぐ分かります。
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
@@ -561,7 +728,8 @@ export default function EventPage() {
             rows={rows}
             participantCount={responseCount}
             highlightedKey={highlightedKey}
-            onSelectBand={scrollToBand}
+            selectedBand={selectedBand}
+            onSelectBand={openBand}
           />
         </CardContent>
       </Card>

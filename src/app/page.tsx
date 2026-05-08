@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
+import { normalizeDateOnly } from "@/lib/scheduling";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
@@ -22,21 +23,21 @@ export default function Home() {
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: new Date(new Date().setDate(new Date().getDate() + 7)),
+    from: normalizeDateOnly(new Date()),
+    to: normalizeDateOnly(new Date(new Date().setDate(new Date().getDate() + 7))),
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventName || !date?.from || !date?.to || isSubmitting) return;
-    
+
     setIsSubmitting(true);
     try {
       const eventId = await createEvent({
         name: eventName,
         description,
-        startDate: date.from,
-        endDate: date.to,
+        startDate: normalizeDateOnly(date.from),
+        endDate: normalizeDateOnly(date.to),
       });
       router.push(`/e/${eventId}`);
     } catch (error) {
@@ -62,8 +63,8 @@ export default function Home() {
         </p>
       </section>
 
-      <Card className="overflow-hidden border-0 shadow-lg ring-1 ring-slate-200">
-        <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-6">
+      <Card className="overflow-hidden border-0 shadow-lg ring-2 ring-slate-200">
+        <CardHeader className="bg-slate-50/50 border-b-2 border-slate-200 pb-6">
           <CardTitle className="text-2xl font-bold text-slate-800">新しくイベントを作る</CardTitle>
           <CardDescription className="text-base text-slate-500">
             イベント名と対象期間を入力して、共有URLを作成してください。
@@ -114,10 +115,10 @@ export default function Home() {
                 参加者が空き日程を提案できる範囲を指定します。
               </span>
               <Popover>
-                <PopoverTrigger
+                  <PopoverTrigger
                   id="date"
                   className={cn(
-                    "inline-flex items-center justify-center whitespace-nowrap rounded-lg border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+                    "inline-flex items-center justify-center whitespace-nowrap rounded-lg border-2 border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50",
                     "w-[300px] h-12 px-4 justify-start text-left font-normal text-base",
                     !date && "text-muted-foreground"
                   )}
@@ -156,7 +157,7 @@ export default function Home() {
             </div>
           </form>
         </CardContent>
-        <CardFooter className="bg-slate-50/50 border-t border-slate-100 p-6 sm:p-8">
+        <CardFooter className="bg-slate-50/50 border-t-2 border-slate-200 p-6 sm:p-8">
           <Button 
             className="w-full h-14 text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md transition-all active:scale-[0.98]"
             onClick={handleSubmit}
