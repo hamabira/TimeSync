@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -492,7 +493,18 @@ export default function EventPage() {
                 />
               </div>
             </CardContent>
-            <CardFooter className="border-t-2 border-slate-200 bg-slate-50/70 p-6">
+            <CardFooter className="flex flex-col gap-4 border-t-2 border-slate-200 bg-slate-50/70 p-6">
+              <p className="text-sm leading-6 text-slate-500">
+                回答した名前と空き時間は、このイベント URL を知る人に表示されます。{" "}
+                <Link className="font-semibold text-blue-700 underline-offset-4 hover:underline" href="/terms">
+                  利用規約
+                </Link>
+                と{" "}
+                <Link className="font-semibold text-blue-700 underline-offset-4 hover:underline" href="/privacy">
+                  プライバシーポリシー
+                </Link>
+                を確認してください。
+              </p>
               <Button
                 type="submit"
                 className="h-12 w-full px-8 text-base font-bold"

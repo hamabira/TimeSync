@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { createEvent } from "@/app/actions";
@@ -157,9 +158,20 @@ export default function Home() {
             </div>
           </form>
         </CardContent>
-        <CardFooter className="bg-slate-50/50 border-t-2 border-slate-200 p-6 sm:p-8">
-          <Button 
-            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md transition-all active:scale-[0.98]"
+        <CardFooter className="flex flex-col gap-4 border-t-2 border-slate-200 bg-slate-50/50 p-6 sm:p-8">
+          <p className="text-sm leading-6 text-slate-500">
+            作成すると、共有 URL を知る人がイベント内容を閲覧できます。{" "}
+            <Link className="font-semibold text-blue-700 underline-offset-4 hover:underline" href="/terms">
+              利用規約
+            </Link>
+            と{" "}
+            <Link className="font-semibold text-blue-700 underline-offset-4 hover:underline" href="/privacy">
+              プライバシーポリシー
+            </Link>
+            を確認してください。
+          </p>
+          <Button
+            className="h-14 w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg font-bold shadow-md transition-all hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98]"
             onClick={handleSubmit}
             disabled={!eventName || !date?.from || !date?.to || isSubmitting}
           >
