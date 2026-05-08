@@ -10,7 +10,10 @@ import {
   getTimeBandKey,
   getBandSegmentAtHour,
   isCellWithinBand,
+  SCHEDULE_AXIS_HOURS,
+  SCHEDULE_END_HOUR,
   SCHEDULE_HOURS,
+  SCHEDULE_START_HOUR,
   type TimeBandRow,
   type TimeBandSegment,
 } from "@/lib/scheduling";
@@ -25,6 +28,9 @@ type TimeBandHeatmapProps = {
 };
 
 const heatmapGridColumns = `180px repeat(${SCHEDULE_HOURS.length}, minmax(0, 1fr))`;
+const axisLabelHours = SCHEDULE_AXIS_HOURS.filter(
+  (hour) => (hour - SCHEDULE_START_HOUR) % 3 === 0
+);
 
 export function TimeBandHeatmap({
   rows,
@@ -48,17 +54,33 @@ export function TimeBandHeatmap({
           <div className="sticky left-0 z-20 rounded-l-lg bg-slate-50 px-4 py-3 text-slate-600">
             日付
           </div>
-          {SCHEDULE_HOURS.map((hour) => (
-            <div
-              key={hour}
-              className={cn(
-                "flex items-center justify-center rounded py-3",
-                hour % 3 === 0 ? "text-slate-600" : "text-transparent"
-              )}
-            >
-              {formatShortHour(hour)}
-            </div>
-          ))}
+          <div
+            className="relative h-11"
+            style={{ gridColumn: `span ${SCHEDULE_HOURS.length} / span ${SCHEDULE_HOURS.length}` }}
+          >
+            {axisLabelHours.map((hour) => {
+              const position =
+                ((hour - SCHEDULE_START_HOUR) / (SCHEDULE_END_HOUR - SCHEDULE_START_HOUR)) *
+                100;
+
+              return (
+                <div
+                  key={hour}
+                  className={cn(
+                    "absolute top-1/2 flex -translate-y-1/2 items-center justify-center rounded py-3 text-slate-600",
+                    hour === SCHEDULE_START_HOUR
+                      ? "translate-x-0"
+                      : hour === SCHEDULE_END_HOUR
+                        ? "-translate-x-full"
+                        : "-translate-x-1/2"
+                  )}
+                  style={{ left: `${position}%` }}
+                >
+                  {formatShortHour(hour)}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -102,12 +124,13 @@ export function TimeBandHeatmap({
                       )}
                       title={
                         cell.count > 0
-                          ? `${formatShortHour(cell.hour)}: ${cell.attendeeNames.join("、")}`
-                          : `${formatShortHour(cell.hour)}: 回答なし`
+                          ? `${formatHourRange(cell.hour, cell.hour + 1)}: ${cell.attendeeNames.join("、")}`
+                          : `${formatHourRange(cell.hour, cell.hour + 1)}: 回答なし`
                       }
                     >
                       <span className="sr-only">
-                        {formatShortHour(cell.hour)} {cell.count > 0 ? `${cell.count}人参加可能` : "回答なし"}
+                        {formatHourRange(cell.hour, cell.hour + 1)}{" "}
+                        {cell.count > 0 ? `${cell.count}人参加可能` : "回答なし"}
                       </span>
                       {cell.count > 0 ? (
                         <span className="flex h-full items-center justify-center text-xs font-semibold">
