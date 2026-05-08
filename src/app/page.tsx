@@ -52,7 +52,7 @@ export default function Home() {
       <section className="space-y-3">
         <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
           <CalendarIcon className="h-4 w-4" />
-          調整さんより見やすく、決めやすく
+          空き状況がひと目で分かる日程調整
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
           みんなの予定を、ひと目で合わせる
