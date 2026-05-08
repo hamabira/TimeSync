@@ -499,76 +499,6 @@ export default function EventPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 pt-6">
-            <div className="rounded-xl border-2 border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-slate-700">選択中の帯</div>
-                  {selectedBand ? (
-                    <>
-                      <div className="mt-2 text-sm text-slate-600">
-                        {format(selectedBand.date, "M/d (E)", { locale: ja })}
-                      </div>
-                      <div className="mt-1 text-base font-bold text-slate-900">
-                        {formatBandSummary(selectedBand)}
-                      </div>
-                      <div className="mt-3 space-y-2">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                          参加者
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedBand.attendeeNames.slice(0, 3).map((name) => (
-                            <span
-                              key={name}
-                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
-                            >
-                              {name}
-                            </span>
-                          ))}
-                          {selectedBand.attendeeNames.length > 3 ? (
-                            <span className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500">
-                              +{selectedBand.attendeeNames.length - 3}人
-                            </span>
-                          ) : null}
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="mt-2 text-sm text-slate-500">
-                      帯を選ぶと詳細がここに表示されます。
-                    </div>
-                  )}
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    type="button"
-                    onClick={handleCopyBandSummary}
-                    disabled={!selectedBand}
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    コピー
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    type="button"
-                    onClick={() => setSelectedBand(null)}
-                    disabled={!selectedBand}
-                  >
-                    解除
-                  </Button>
-                </div>
-              </div>
-              <div className="mt-3 text-xs text-slate-500">
-                {bandCopyState === "copied"
-                  ? "候補文をコピーしました。"
-                  : bandCopyState === "error"
-                    ? "コピーに失敗しました。"
-                    : "候補文はそのままチャットに貼れます。"}
-              </div>
-            </div>
-
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <Link2 className="h-4 w-4" />
               第一候補から第三候補を上に並べています。
@@ -650,6 +580,76 @@ export default function EventPage() {
                 })}
               </div>
             )}
+
+            <div className="rounded-xl border-2 border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-slate-700">選択中の帯</div>
+                  {selectedBand ? (
+                    <>
+                      <div className="mt-2 text-sm text-slate-600">
+                        {format(selectedBand.date, "M/d (E)", { locale: ja })}
+                      </div>
+                      <div className="mt-1 text-base font-bold text-slate-900">
+                        {formatBandSummary(selectedBand)}
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                          参加者
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedBand.attendeeNames.slice(0, 3).map((name) => (
+                            <span
+                              key={name}
+                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
+                            >
+                              {name}
+                            </span>
+                          ))}
+                          {selectedBand.attendeeNames.length > 3 ? (
+                            <span className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500">
+                              +{selectedBand.attendeeNames.length - 3}人
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="mt-2 text-sm text-slate-500">
+                      帯を選ぶと詳細がここに表示されます。
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={handleCopyBandSummary}
+                    disabled={!selectedBand}
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    コピー
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    type="button"
+                    onClick={() => setSelectedBand(null)}
+                    disabled={!selectedBand}
+                  >
+                    解除
+                  </Button>
+                </div>
+              </div>
+              <div className="mt-3 text-xs text-slate-500">
+                {bandCopyState === "copied"
+                  ? "候補文をコピーしました。"
+                  : bandCopyState === "error"
+                    ? "コピーに失敗しました。"
+                    : "候補文はそのままチャットに貼れます。"}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
