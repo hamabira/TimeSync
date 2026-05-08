@@ -33,6 +33,7 @@ import {
   buildTopSegments,
   formatBandSummary,
   formatHourRange,
+  formatParticipantLine,
   getTimeBandKey,
   normalizeParticipantName,
   normalizeDateOnly,
@@ -95,6 +96,8 @@ export default function EventPage() {
   const [timeSlots, setTimeSlots] = useState<TimeSlotDraft[]>([]);
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
   const [selectedBand, setSelectedBand] = useState<TimeBandSegment | null>(null);
+  const [expandedSelectedBand, setExpandedSelectedBand] = useState(false);
+  const [expandedCandidateKey, setExpandedCandidateKey] = useState<string | null>(null);
   const [notice, setNotice] = useState<NoticeState>(null);
   const [copyState, setCopyState] = useState<CopyState>("idle");
   const [bandCopyState, setBandCopyState] = useState<CopyState>("idle");
@@ -136,6 +139,10 @@ export default function EventPage() {
 
   const responseCount = participantsData.length;
   const selectedBandKey = selectedBand ? getTimeBandKey(selectedBand.date, selectedBand.startHour) : null;
+  const selectedBandAttendeePreview = selectedBand ? selectedBand.attendeeNames.slice(0, 3) : [];
+  const selectedBandAttendeeOverflow = selectedBand
+    ? selectedBand.attendeeNames.length - selectedBandAttendeePreview.length
+    : 0;
 
   const openBand = (band: TimeBandSegment | null) => {
     if (!band) {
@@ -143,6 +150,7 @@ export default function EventPage() {
     }
 
     setSelectedBand(band);
+    setExpandedSelectedBand(false);
 
     const bandKey = getTimeBandKey(band.date, band.startHour);
     const element = document.getElementById(`time-band-${band.date.getTime()}`);
@@ -207,7 +215,7 @@ export default function EventPage() {
     const text = [
       `候補時間: ${formatBandSummary(selectedBand)}`,
       `日付: ${format(selectedBand.date, "yyyy/MM/dd (E)", { locale: ja })}`,
-      `参加者: ${selectedBand.attendeeNames.join("、")}`,
+      formatParticipantLine(selectedBand.attendeeNames),
     ].join("\n");
 
     try {
@@ -267,6 +275,14 @@ export default function EventPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const toggleCandidateExpansion = (candidateKey: string) => {
+    setExpandedCandidateKey((current) => (current === candidateKey ? null : candidateKey));
+  };
+
+  const toggleSelectedBandExpansion = () => {
+    setExpandedSelectedBand((current) => !current);
   };
 
   if (isLoading) {
@@ -514,19 +530,28 @@ export default function EventPage() {
                   const candidateKey = `${candidate.date.getTime()}-${candidate.startHour}`;
                   const attendeePreview = candidate.attendeeNames.slice(0, 3);
                   const attendeeOverflow = candidate.attendeeNames.length - attendeePreview.length;
+                  const isExpanded = expandedCandidateKey === candidateKey;
 
                   return (
-                    <button
+                    <div
                       key={candidateKey}
-                      type="button"
                       className={cn(
                         "w-full rounded-xl border-2 p-4 text-left transition-all",
+                        "cursor-pointer",
                         "hover:-translate-y-0.5 hover:shadow-md",
                         selectedBandKey === candidateKey
                           ? "border-blue-500 bg-blue-50/70"
                           : "border-slate-200 bg-white hover:border-blue-300"
                       )}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => openBand(candidate)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          openBand(candidate);
+                        }
+                      }}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
@@ -560,7 +585,7 @@ export default function EventPage() {
                           参加者
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {attendeePreview.map((name) => (
+                          {(isExpanded ? candidate.attendeeNames : attendeePreview).map((name) => (
                             <span
                               key={name}
                               className="inline-flex items-center rounded-full border-2 border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
@@ -568,14 +593,33 @@ export default function EventPage() {
                               {name}
                             </span>
                           ))}
-                          {attendeeOverflow > 0 ? (
-                            <span className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500">
+                          {attendeeOverflow > 0 && !isExpanded ? (
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                toggleCandidateExpansion(candidateKey);
+                              }}
+                            >
                               +{attendeeOverflow}人
-                            </span>
+                            </button>
+                          ) : null}
+                          {isExpanded && attendeeOverflow > 0 ? (
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                toggleCandidateExpansion(candidateKey);
+                              }}
+                            >
+                              閉じる
+                            </button>
                           ) : null}
                         </div>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -598,18 +642,33 @@ export default function EventPage() {
                           参加者
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {selectedBand.attendeeNames.slice(0, 3).map((name) => (
-                            <span
-                              key={name}
-                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
+                          {(expandedSelectedBand ? selectedBand.attendeeNames : selectedBandAttendeePreview).map(
+                            (name) => (
+                              <span
+                                key={name}
+                                className="inline-flex items-center rounded-full border-2 border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
+                              >
+                                {name}
+                              </span>
+                            )
+                          )}
+                          {selectedBandAttendeeOverflow > 0 && !expandedSelectedBand ? (
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
+                              onClick={toggleSelectedBandExpansion}
                             >
-                              {name}
-                            </span>
-                          ))}
-                          {selectedBand.attendeeNames.length > 3 ? (
-                            <span className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500">
-                              +{selectedBand.attendeeNames.length - 3}人
-                            </span>
+                              +{selectedBandAttendeeOverflow}人
+                            </button>
+                          ) : null}
+                          {selectedBandAttendeeOverflow > 0 && expandedSelectedBand ? (
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
+                              onClick={toggleSelectedBandExpansion}
+                            >
+                              閉じる
+                            </button>
                           ) : null}
                         </div>
                       </div>
@@ -635,7 +694,10 @@ export default function EventPage() {
                     variant="ghost"
                     size="sm"
                     type="button"
-                    onClick={() => setSelectedBand(null)}
+                    onClick={() => {
+                      setSelectedBand(null);
+                      setExpandedSelectedBand(false);
+                    }}
                     disabled={!selectedBand}
                   >
                     解除

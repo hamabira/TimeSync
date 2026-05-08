@@ -133,6 +133,14 @@ export function formatBandSummary(segment: TimeBandSegment) {
   return `${formatShortHour(segment.startHour)} - ${formatShortHour(segment.endHour)} / ${segment.count}人参加可能`;
 }
 
+export function formatParticipantLine(attendeeNames: string[]) {
+  if (attendeeNames.length === 0) {
+    return "参加者: なし";
+  }
+
+  return `参加者: ${attendeeNames.join("、")}`;
+}
+
 export function getHeatmapCellClass(count: number, participantCount: number) {
   if (count === 0) {
     return "bg-slate-100 text-slate-400";
