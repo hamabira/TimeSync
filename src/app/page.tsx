@@ -52,13 +52,13 @@ export default function Home() {
       <section className="space-y-3">
         <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
           <CalendarIcon className="h-4 w-4" />
-          空き状況がひと目で分かる日程調整
+          空き時間の重なりが見える日程調整
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
-          みんなの予定を、ひと目で合わせる
+          みんなの空き時間、重なるところだけすぐ見える。
         </h1>
         <p className="max-w-2xl text-base leading-7 text-slate-600">
-          TimeSync は、候補時間と重なり具合がすぐ分かる日程調整ツールです。
+          AkiMatch は、授業・バイト・サークルで予定がバラバラなグループ向けの日程調整ツールです。
           幹事は対象期間を決めるだけで、参加者は空いている日と時間を送れます。
         </p>
       </section>

@@ -4,7 +4,7 @@ import { getDb } from "@/db";
 import { events, participants, timeSlots } from "@/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
 
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
   EventWithParticipants,
   getTokyoDateKey,
@@ -26,7 +26,7 @@ type SubmitResponseInput = {
 };
 
 function getDbFromRequest() {
-  return getDb(getRequestContext().env);
+  return getDb(getCloudflareContext().env);
 }
 
 export async function createEvent(data: CreateEventInput) {
