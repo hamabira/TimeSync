@@ -4,8 +4,8 @@ import "./globals.css";
 export const runtime = "edge";
 
 export const metadata: Metadata = {
-  title: "TimeSync | 見やすい日程調整アプリ",
-  description: "直感的で圧倒的に見やすい日程調整アプリ。みんなの予定をサクッと合わせよう。",
+  title: "TimeSync | 日程調整アプリ",
+  description: "空き状況がひと目で分かる日程調整アプリ。候補時間と重なり具合をすばやく確認できます。",
 };
 
 export default function RootLayout({
