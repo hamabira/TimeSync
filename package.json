@@ -4,8 +4,9 @@
   "private": true,
   "packageManager": "pnpm@10.33.3",
   "scripts": {
-    "dev": "next dev",
-    "dev:log": "mkdir -p logs && next dev 2>&1 | tee logs/dev.log",
+    "db:migrate:local": "pnpm exec wrangler d1 migrations apply akimatch_db --local",
+    "dev": "pnpm run db:migrate:local && next dev",
+    "dev:log": "mkdir -p logs && pnpm run db:migrate:local && next dev 2>&1 | tee logs/dev.log",
     "build": "next build --webpack",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",

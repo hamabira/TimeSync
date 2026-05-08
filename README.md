@@ -43,6 +43,7 @@ pnpm dev
 ```
 
 The app uses Next.js App Router, Cloudflare Workers runtime, Cloudflare D1, and Drizzle.
+`pnpm dev` applies the local D1 migrations before starting Next.js, so the initial database schema is ready for development.
 
 ## Quality Checks
 
