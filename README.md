@@ -56,6 +56,10 @@ pnpm exec opennextjs-cloudflare build
 
 This project deploys full-stack Next.js through the OpenNext Cloudflare adapter.
 
+Production deploys are handled by GitHub Actions. Pull requests to `main` run
+checks only. After a PR is merged, a push to `main` runs the same checks and then
+deploys the existing `akimatch` Worker.
+
 ### 1. Log in to Cloudflare
 
 ```bash
@@ -81,6 +85,9 @@ migrations_dir = "drizzle"
 
 ### 3. Apply D1 migrations
 
+D1 migrations are not applied automatically by the deploy workflow. Run them
+manually when a migration is needed:
+
 ```bash
 pnpm wrangler d1 migrations apply akimatch_db --remote
 ```
@@ -91,10 +98,38 @@ pnpm wrangler d1 migrations apply akimatch_db --remote
 pnpm run preview
 ```
 
-### 5. Deploy
+### 5. Configure GitHub Actions secrets
+
+Add these repository secrets before merging deployment changes to `main`:
+
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+
+The workflow uses `wrangler.toml`, so the production Worker remains `akimatch`
+and the production D1 database remains `akimatch_db`.
+
+### 6. Deploy
+
+Merge a PR into `main`, or run the `Deploy` workflow manually from GitHub
+Actions. The workflow runs:
 
 ```bash
-pnpm run deploy
+pnpm lint
+pnpm build
+pnpm exec opennextjs-cloudflare build
+```
+
+Only `push` to `main` and `workflow_dispatch` continue to `wrangler deploy`. PRs
+do not deploy.
+
+`pnpm run deploy` remains available for emergency local deploys, but normal
+production deploys should go through GitHub Actions so the deployed commit is
+traceable.
+
+After deployment, confirm the latest Worker deployment if needed:
+
+```bash
+pnpm wrangler deployments status --name akimatch --json
 ```
 
 After deployment, verify the generated Workers URL:
