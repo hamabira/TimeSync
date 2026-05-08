@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -59,9 +60,17 @@ export default function RootLayout({
         <main className="flex-1 container mx-auto px-4 py-8">
           {children}
         </main>
-        <footer className="py-6 border-t-2 border-slate-200 bg-white">
-          <div className="container mx-auto px-4 text-center text-sm text-slate-500">
-            &copy; {new Date().getFullYear()} AkiMatch. All rights reserved.
+        <footer className="border-t-2 border-slate-200 bg-white py-6">
+          <div className="container mx-auto flex flex-col items-center justify-center gap-3 px-4 text-center text-sm text-slate-500 sm:flex-row sm:justify-between">
+            <div>&copy; {new Date().getFullYear()} AkiMatch. All rights reserved.</div>
+            <nav aria-label="法務リンク" className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+              <Link className="font-medium text-slate-600 transition-colors hover:text-blue-700" href="/terms">
+                利用規約
+              </Link>
+              <Link className="font-medium text-slate-600 transition-colors hover:text-blue-700" href="/privacy">
+                プライバシーポリシー
+              </Link>
+            </nav>
           </div>
         </footer>
       </body>

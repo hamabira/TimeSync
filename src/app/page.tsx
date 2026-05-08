@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { createEvent } from "@/app/actions";
@@ -115,29 +116,34 @@ export default function Home() {
                 参加者が空き日程を提案できる範囲を指定します。
               </span>
               <Popover>
-                  <PopoverTrigger
+                <PopoverTrigger
                   id="date"
                   className={cn(
-                    "inline-flex items-center justify-center whitespace-nowrap rounded-lg border-2 border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50",
-                    "w-[300px] h-12 px-4 justify-start text-left font-normal text-base",
+                    "inline-flex min-w-0 items-center justify-start gap-2 whitespace-nowrap rounded-lg border-2 border-input bg-background px-4 text-left text-base font-normal shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50",
+                    "h-12 w-full max-w-sm",
                     !date && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-5 w-5" />
-                  {date?.from ? (
-                    date.to ? (
-                      <>
-                        {format(date.from, "yyyy年MM月dd日")} -{" "}
-                        {format(date.to, "yyyy年MM月dd日")}
-                      </>
+                  <CalendarIcon className="h-5 w-5 shrink-0" />
+                  <span className="min-w-0 truncate">
+                    {date?.from ? (
+                      date.to ? (
+                        <>
+                          {format(date.from, "yyyy年MM月dd日")} -{" "}
+                          {format(date.to, "yyyy年MM月dd日")}
+                        </>
+                      ) : (
+                        format(date.from, "yyyy年MM月dd日")
+                      )
                     ) : (
-                      format(date.from, "yyyy年MM月dd日")
-                    )
-                  ) : (
-                    <span>期間を選択</span>
-                  )}
+                      "期間を選択"
+                    )}
+                  </span>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent
+                  className="w-auto max-w-[calc(100vw-2rem)] overflow-x-auto p-0"
+                  align="start"
+                >
                   <Calendar
                     initialFocus
                     mode="range"
@@ -157,9 +163,20 @@ export default function Home() {
             </div>
           </form>
         </CardContent>
-        <CardFooter className="bg-slate-50/50 border-t-2 border-slate-200 p-6 sm:p-8">
-          <Button 
-            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md transition-all active:scale-[0.98]"
+        <CardFooter className="flex flex-col gap-4 border-t-2 border-slate-200 bg-slate-50/50 p-6 sm:p-8">
+          <p className="text-sm leading-6 text-slate-500">
+            作成すると、共有 URL を知る人がイベント内容を閲覧できます。{" "}
+            <Link className="font-semibold text-blue-700 underline-offset-4 hover:underline" href="/terms">
+              利用規約
+            </Link>
+            と{" "}
+            <Link className="font-semibold text-blue-700 underline-offset-4 hover:underline" href="/privacy">
+              プライバシーポリシー
+            </Link>
+            を確認してください。
+          </p>
+          <Button
+            className="h-14 w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg font-bold shadow-md transition-all hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98]"
             onClick={handleSubmit}
             disabled={!eventName || !date?.from || !date?.to || isSubmitting}
           >
