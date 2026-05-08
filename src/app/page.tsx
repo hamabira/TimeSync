@@ -116,29 +116,34 @@ export default function Home() {
                 参加者が空き日程を提案できる範囲を指定します。
               </span>
               <Popover>
-                  <PopoverTrigger
+                <PopoverTrigger
                   id="date"
                   className={cn(
-                    "inline-flex items-center justify-center whitespace-nowrap rounded-lg border-2 border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50",
-                    "w-[300px] h-12 px-4 justify-start text-left font-normal text-base",
+                    "inline-flex min-w-0 items-center justify-start gap-2 whitespace-nowrap rounded-lg border-2 border-input bg-background px-4 text-left text-base font-normal shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50",
+                    "h-12 w-full max-w-sm",
                     !date && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-5 w-5" />
-                  {date?.from ? (
-                    date.to ? (
-                      <>
-                        {format(date.from, "yyyy年MM月dd日")} -{" "}
-                        {format(date.to, "yyyy年MM月dd日")}
-                      </>
+                  <CalendarIcon className="h-5 w-5 shrink-0" />
+                  <span className="min-w-0 truncate">
+                    {date?.from ? (
+                      date.to ? (
+                        <>
+                          {format(date.from, "yyyy年MM月dd日")} -{" "}
+                          {format(date.to, "yyyy年MM月dd日")}
+                        </>
+                      ) : (
+                        format(date.from, "yyyy年MM月dd日")
+                      )
                     ) : (
-                      format(date.from, "yyyy年MM月dd日")
-                    )
-                  ) : (
-                    <span>期間を選択</span>
-                  )}
+                      "期間を選択"
+                    )}
+                  </span>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent
+                  className="w-auto max-w-[calc(100vw-2rem)] overflow-x-auto p-0"
+                  align="start"
+                >
                   <Calendar
                     initialFocus
                     mode="range"
