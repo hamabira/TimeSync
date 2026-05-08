@@ -2,8 +2,37 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
   title: "AkiMatch | 空き時間が重なるところを見つける日程調整アプリ",
   description: "みんなの空き時間、重なるところだけすぐ見える。予定がバラバラな学生グループ向けの日程調整アプリです。",
+  icons: {
+    icon: "/brand/icon.png",
+    apple: "/brand/apple-icon.png",
+  },
+  openGraph: {
+    title: "AkiMatch | 空き時間が重なるところを見つける日程調整アプリ",
+    description: "みんなの空き時間、重なるところだけすぐ見える。予定がバラバラな学生グループ向けの日程調整アプリです。",
+    type: "website",
+    images: [
+      {
+        url: "/brand/opengraph-image.png",
+        alt: "AkiMatch の共有プレビュー画像",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AkiMatch | 空き時間が重なるところを見つける日程調整アプリ",
+    description: "みんなの空き時間、重なるところだけすぐ見える。予定がバラバラな学生グループ向けの日程調整アプリです。",
+    images: [
+      {
+        url: "/brand/twitter-image.png",
+        alt: "AkiMatch の共有プレビュー画像",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
