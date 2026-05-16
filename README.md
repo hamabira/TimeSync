@@ -157,7 +157,19 @@ pnpm run preview
 
 ワークフローは `wrangler.toml` を使うため、本番 Worker は `akimatch`、本番 D1 データベースは `akimatch_db` として扱われます。
 
-### 6. デプロイする
+### 6. Cloudflare の濫用対策を設定する
+
+Cloudflare の DDoS managed protection は有効化した状態で運用します。加えて、Cloudflare Dashboard で Rate Limiting Rule を作成します。
+
+- 対象パスは `/` と `/e/*` の origin 到達リクエスト
+- 初期値は同一 IP から 1 分あたり 30-60 リクエスト超を目安にする
+- まずは `Log` で 24-48 時間確認し、その後 `Managed Challenge` または `Block` に変更する
+- mitigation duration は 10 分程度から始める
+- Cloudflare plan により method や header 条件が使えない場合は、path ベースの緩めの設定から始める
+
+アプリ側では Server Actions の body size を `100kb` に下げ、イベント期間と回答スロット数にも上限を設けています。
+
+### 7. デプロイする
 
 プルリクエストを `main` にマージするか、GitHub Actions から `Deploy` ワークフローを手動実行します。ワークフローでは次の確認を行います。
 

@@ -59,6 +59,8 @@ type NoticeState =
 
 type CopyState = "idle" | "copied" | "error";
 
+const MAX_RESPONSE_SLOTS = 20;
+
 function hydrateEventData(data: EventWithParticipants) {
   return {
     event: {
@@ -165,24 +167,31 @@ export default function EventPage() {
 
   const handleSelectDates = (dates: Date[] | undefined) => {
     const nextDates = dates ?? [];
+    const normalizedDates = nextDates.map((date) => normalizeDateOnly(date));
 
-    setTimeSlots((previous) => {
-      const normalizedDates = nextDates.map((date) => normalizeDateOnly(date));
+    const kept = timeSlots.filter((slot) =>
+      normalizedDates.some((date) => date.getTime() === slot.date.getTime())
+    );
 
-      const kept = previous.filter((slot) =>
-        normalizedDates.some((date) => date.getTime() === slot.date.getTime())
-      );
+    const keptDates = new Set(kept.map((slot) => slot.date.getTime()));
+    const additions = normalizedDates
+      .filter((date) => !keptDates.has(date.getTime()))
+      .slice(0, Math.max(0, MAX_RESPONSE_SLOTS - kept.length))
+      .map((date) => createDefaultSlot(date));
 
-      const keptDates = new Set(kept.map((slot) => slot.date.getTime()));
-      const additions = normalizedDates
-        .filter((date) => !keptDates.has(date.getTime()))
-        .map((date) => createDefaultSlot(date));
+    if (kept.length + additions.length < normalizedDates.length) {
+      setNotice({ type: "error", message: "時間帯は20件以内で選択してください。" });
+    }
 
-      return [...kept, ...additions];
-    });
+    setTimeSlots([...kept, ...additions]);
   };
 
   const addTimeSlot = (date: Date) => {
+    if (timeSlots.length >= MAX_RESPONSE_SLOTS) {
+      setNotice({ type: "error", message: "時間帯は20件以内で選択してください。" });
+      return;
+    }
+
     setTimeSlots((previous) => [...previous, createDefaultSlot(date)]);
   };
 
@@ -424,6 +433,7 @@ export default function EventPage() {
                               type="button"
                               className="text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                               onClick={() => addTimeSlot(date)}
+                              disabled={timeSlots.length >= MAX_RESPONSE_SLOTS}
                             >
                               + 時間を追加
                             </Button>

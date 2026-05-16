@@ -43,7 +43,7 @@ export default function Home() {
       router.push(`/e/${eventId}`);
     } catch (error) {
       console.error(error);
-      alert("イベントの作成に失敗しました。");
+      alert(error instanceof Error ? error.message : "イベントの作成に失敗しました。");
       setIsSubmitting(false);
     }
   };

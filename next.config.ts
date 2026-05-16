@@ -11,6 +11,9 @@ if (process.env.NODE_ENV === "development") {
 const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
+    serverActions: {
+      bodySizeLimit: "100kb",
+    },
     webpackBuildWorker: false,
   },
   reactCompiler: true,
