@@ -54,6 +54,9 @@ jobs:
       - name: Build OpenNext Cloudflare output
         run: pnpm exec opennextjs-cloudflare build
 
+      - name: Check Cloudflare Workers deployment
+        run: pnpm exec wrangler deploy --dry-run
+
   deploy:
     name: Deploy Worker
     runs-on: ubuntu-latest
