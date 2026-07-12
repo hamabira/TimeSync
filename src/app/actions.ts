@@ -72,8 +72,9 @@ export async function createEvent(data: CreateEventInput) {
     throw new Error("対象期間の終了日は開始日より後にしてください。");
   }
 
-  const rangeDays =
-    (data.endDate.getTime() - data.startDate.getTime()) / (24 * 60 * 60 * 1000);
+  const rangeDays = Math.round(
+    (data.endDate.getTime() - data.startDate.getTime()) / (24 * 60 * 60 * 1000)
+  );
 
   if (rangeDays > MAX_EVENT_RANGE_DAYS) {
     throw new Error("対象期間は3か月以内で指定してください。");
@@ -119,17 +120,18 @@ export async function getEventWithParticipants(eventId: string) {
           .where(inArray(timeSlots.participantId, participantIds))
       : [];
 
+  const slotsByParticipant = new Map<string, { date: Date; startTime: string; endTime: string }[]>();
+  for (const slot of allTimeSlots) {
+    const list = slotsByParticipant.get(slot.participantId) ?? [];
+    list.push({ date: slot.date, startTime: slot.startTime, endTime: slot.endTime });
+    slotsByParticipant.set(slot.participantId, list);
+  }
+
   const participantsWithSlots: EventWithParticipants["participants"] = participantsResult.map(
     (participant) => ({
       id: participant.id,
       name: participant.name,
-      timeSlots: allTimeSlots
-        .filter((slot) => slot.participantId === participant.id)
-        .map((slot) => ({
-          date: slot.date,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-        })),
+      timeSlots: slotsByParticipant.get(participant.id) ?? [],
     })
   );
 
@@ -171,6 +173,15 @@ export async function submitResponse(
   const uniqueSlots = new Map<string, SubmitResponseInput>();
 
   for (const slot of slots) {
+    if (
+      typeof slot !== "object" ||
+      slot === null ||
+      typeof slot.startTime !== "string" ||
+      typeof slot.endTime !== "string"
+    ) {
+      throw new Error("回答内容の形式が正しくありません。");
+    }
+
     if (!isValidDate(slot.date)) {
       throw new Error("日付が正しくありません。");
     }
@@ -223,42 +234,33 @@ export async function submitResponse(
   const existingParticipantIds = existingParticipants.map((participant) => participant.id);
   const participantId = crypto.randomUUID();
 
+  // D1 の batch は単一トランザクションとして実行されるため、
+  // 既存回答の削除と新規回答の挿入をまとめても途中失敗で旧回答だけ消えることはない。
+  const insertStatements = [
+    db.insert(participants).values({
+      id: participantId,
+      eventId,
+      name: normalizedName,
+    }),
+    db.insert(timeSlots).values(
+      validatedSlots.map((slot) => ({
+        id: crypto.randomUUID(),
+        participantId,
+        date: slot.date,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+      }))
+    ),
+  ] as const;
+
   if (existingParticipantIds.length > 0) {
     await db.batch([
       db.delete(timeSlots).where(inArray(timeSlots.participantId, existingParticipantIds)),
       db.delete(participants).where(inArray(participants.id, existingParticipantIds)),
-      db.insert(participants).values({
-        id: participantId,
-        eventId,
-        name: normalizedName,
-      }),
-      db.insert(timeSlots).values(
-        validatedSlots.map((slot) => ({
-          id: crypto.randomUUID(),
-          participantId,
-          date: slot.date,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-        }))
-      ),
+      ...insertStatements,
     ]);
   } else {
-    await db.batch([
-      db.insert(participants).values({
-        id: participantId,
-        eventId,
-        name: normalizedName,
-      }),
-      db.insert(timeSlots).values(
-        validatedSlots.map((slot) => ({
-          id: crypto.randomUUID(),
-          participantId,
-          date: slot.date,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-        }))
-      ),
-    ]);
+    await db.batch([...insertStatements]);
   }
 
   return true;

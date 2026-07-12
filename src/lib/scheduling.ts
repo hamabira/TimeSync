@@ -54,6 +54,7 @@ export type TimeBandSegment = {
 export type TimeBandRow = {
   date: Date;
   cells: TimeBandCell[];
+  segments: TimeBandSegment[];
   bestSegment: TimeBandSegment | null;
 };
 
@@ -99,15 +100,6 @@ export function formatShortHour(hour: number) {
 
 export function normalizeDateOnly(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-export function compareDateOnly(left: Date, right: Date) {
-  const leftKey = normalizeDateOnly(left).getTime();
-  const rightKey = normalizeDateOnly(right).getTime();
-
-  if (leftKey < rightKey) return -1;
-  if (leftKey > rightKey) return 1;
-  return 0;
 }
 
 const tokyoDateFormatter = new Intl.DateTimeFormat("en-CA", {
@@ -166,6 +158,67 @@ export function getHeatmapCellClass(count: number, participantCount: number) {
   return "bg-sky-100 text-sky-900";
 }
 
+function compareSegments(left: TimeBandSegment, right: TimeBandSegment) {
+  if (right.count !== left.count) {
+    return right.count - left.count;
+  }
+
+  const leftDuration = left.endHour - left.startHour;
+  const rightDuration = right.endHour - right.startHour;
+
+  if (rightDuration !== leftDuration) {
+    return rightDuration - leftDuration;
+  }
+
+  if (left.date.getTime() !== right.date.getTime()) {
+    return left.date.getTime() - right.date.getTime();
+  }
+
+  return left.startHour - right.startHour;
+}
+
+function buildRowSegments(date: Date, cells: TimeBandCell[]): TimeBandSegment[] {
+  const segments: TimeBandSegment[] = [];
+  let current: TimeBandSegment | null = null;
+
+  cells.forEach((cell) => {
+    if (cell.count === 0) {
+      if (current) {
+        segments.push(current);
+        current = null;
+      }
+      return;
+    }
+
+    if (
+      current &&
+      getAttendeeKey(current.attendeeNames) === getAttendeeKey(cell.attendeeNames) &&
+      current.endHour === cell.hour
+    ) {
+      current = { ...current, endHour: cell.hour + 1 };
+      return;
+    }
+
+    if (current) {
+      segments.push(current);
+    }
+
+    current = {
+      date,
+      startHour: cell.hour,
+      endHour: cell.hour + 1,
+      attendeeNames: cell.attendeeNames,
+      count: cell.count,
+    };
+  });
+
+  if (current) {
+    segments.push(current);
+  }
+
+  return segments;
+}
+
 export function buildTimeBandRows(participants: ParticipantRecord[]): TimeBandRow[] {
   const dateMap = new Map<number, Date>();
 
@@ -193,7 +246,8 @@ export function buildTimeBandRows(participants: ParticipantRecord[]): TimeBandRo
                 return false;
               }
 
-              return hour * 60 >= startMinutes && hour * 60 < endMinutes;
+              // その1時間にフルで参加できる場合だけカウントする(1時間単位集計)
+              return hour * 60 >= startMinutes && (hour + 1) * 60 <= endMinutes;
             })
           )
           .map((participant) => participant.name)
@@ -206,185 +260,26 @@ export function buildTimeBandRows(participants: ParticipantRecord[]): TimeBandRo
         };
       });
 
-      const bestSegment = cells.reduce<TimeBandSegment | null>((best, cell) => {
-        if (cell.count === 0) {
-          return best;
-        }
-
-        if (!best) {
-          return {
-            date,
-            startHour: cell.hour,
-            endHour: cell.hour + 1,
-            attendeeNames: cell.attendeeNames,
-            count: cell.count,
-          };
-        }
-
-        const sameGroup = getAttendeeKey(best.attendeeNames) === getAttendeeKey(cell.attendeeNames) && best.endHour === cell.hour;
-
-        const candidate = sameGroup
-          ? {
-              ...best,
-              endHour: cell.hour + 1,
-            }
-          : {
-              date,
-              startHour: cell.hour,
-              endHour: cell.hour + 1,
-              attendeeNames: cell.attendeeNames,
-              count: cell.count,
-            };
-
-        const bestDuration = best.endHour - best.startHour;
-        const candidateDuration = candidate.endHour - candidate.startHour;
-
-        if (candidate.count > best.count) {
-          return candidate;
-        }
-
-        if (candidate.count === best.count && candidateDuration > bestDuration) {
-          return candidate;
-        }
-
-        if (
-          candidate.count === best.count &&
-          candidateDuration === bestDuration &&
-          candidate.startHour < best.startHour
-        ) {
-          return candidate;
-        }
-
-        return best;
-      }, null);
+      const segments = buildRowSegments(date, cells);
+      const bestSegment = segments.length > 0 ? [...segments].sort(compareSegments)[0] : null;
 
       return {
         date,
         cells,
+        segments,
         bestSegment,
       };
     });
 }
 
 export function buildTopSegments(rows: TimeBandRow[]) {
-  const segments: TimeBandSegment[] = [];
-
-  rows.forEach((row) => {
-    let current: TimeBandSegment | null = null;
-
-    row.cells.forEach((cell) => {
-      if (cell.count === 0) {
-        if (current) {
-          segments.push(current);
-          current = null;
-        }
-        return;
-      }
-
-      if (
-        current &&
-        getAttendeeKey(current.attendeeNames) === getAttendeeKey(cell.attendeeNames) &&
-        current.endHour === cell.hour
-      ) {
-        current = {
-          ...current,
-          endHour: cell.hour + 1,
-        };
-        return;
-      }
-
-      if (current) {
-        segments.push(current);
-      }
-
-      current = {
-        date: row.date,
-        startHour: cell.hour,
-        endHour: cell.hour + 1,
-        attendeeNames: cell.attendeeNames,
-        count: cell.count,
-      };
-    });
-
-    if (current) {
-      segments.push(current);
-    }
-  });
-
-  return segments.sort((left, right) => {
-    if (right.count !== left.count) {
-      return right.count - left.count;
-    }
-
-    const leftDuration = left.endHour - left.startHour;
-    const rightDuration = right.endHour - right.startHour;
-
-    if (rightDuration !== leftDuration) {
-      return rightDuration - leftDuration;
-    }
-
-    if (left.date.getTime() !== right.date.getTime()) {
-      return left.date.getTime() - right.date.getTime();
-    }
-
-    return left.startHour - right.startHour;
-  });
+  return rows.flatMap((row) => row.segments).sort(compareSegments);
 }
 
 export function getBandSegmentAtHour(row: TimeBandRow, hour: number) {
-  const cell = row.cells.find((entry) => entry.hour === hour);
-
-  if (!cell || cell.count === 0) {
-    return null;
-  }
-
-  const segmentCells = row.cells.filter(
-    (entry) => entry.count > 0 && getAttendeeKey(entry.attendeeNames) === getAttendeeKey(cell.attendeeNames)
+  return (
+    row.segments.find((segment) => segment.startHour <= hour && hour < segment.endHour) ?? null
   );
-
-  const startCell = segmentCells.find((entry) => entry.hour <= hour && hour < entry.hour + 1);
-  if (!startCell) {
-    return null;
-  }
-
-  let startHour = startCell.hour;
-  let endHour = startCell.hour + 1;
-
-  for (let index = row.cells.findIndex((entry) => entry.hour === startHour) - 1; index >= 0; index--) {
-    const previous = row.cells[index];
-
-    if (
-      previous.count > 0 &&
-      getAttendeeKey(previous.attendeeNames) === getAttendeeKey(cell.attendeeNames) &&
-      previous.hour + 1 === startHour
-    ) {
-      startHour = previous.hour;
-    } else {
-      break;
-    }
-  }
-
-  for (let index = row.cells.findIndex((entry) => entry.hour === endHour); index < row.cells.length; index++) {
-    const next = row.cells[index];
-
-    if (
-      next.count > 0 &&
-      getAttendeeKey(next.attendeeNames) === getAttendeeKey(cell.attendeeNames) &&
-      next.hour === endHour
-    ) {
-      endHour = next.hour + 1;
-    } else {
-      break;
-    }
-  }
-
-  return {
-    date: row.date,
-    startHour,
-    endHour,
-    attendeeNames: cell.attendeeNames,
-    count: cell.count,
-  };
 }
 
 export function isCellWithinBand(row: TimeBandRow, hour: number, segment: TimeBandSegment | null) {
