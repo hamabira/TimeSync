@@ -1,6 +1,8 @@
 export const SCHEDULE_START_HOUR = 0;
 export const SCHEDULE_END_HOUR = 24;
 
+export const MAX_RESPONSE_SLOTS = 20;
+
 export const SCHEDULE_HOURS = Array.from(
   { length: SCHEDULE_END_HOUR - SCHEDULE_START_HOUR },
   (_, index) => SCHEDULE_START_HOUR + index

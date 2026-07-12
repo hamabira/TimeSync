@@ -48,8 +48,12 @@ export function TimeBandHeatmap({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <div className="min-w-[920px] space-y-2">
+    <div>
+      <p className="mb-2 text-xs text-slate-400 lg:hidden">
+        横にスクロールすると全時間帯を確認できます。
+      </p>
+      <div className="overflow-x-auto">
+        <div className="min-w-[920px] space-y-2">
         <div className="grid items-center gap-1 text-xs font-medium text-slate-500" style={{ gridTemplateColumns: heatmapGridColumns }}>
           <div className="sticky left-0 z-20 rounded-l-lg bg-slate-50 px-4 py-3 text-slate-600">
             日付
@@ -143,6 +147,7 @@ export function TimeBandHeatmap({
               </div>
             );
           })}
+        </div>
         </div>
       </div>
     </div>

@@ -23,6 +23,7 @@ export default function Home() {
   const [eventName, setEventName] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [date, setDate] = useState<DateRange | undefined>({
     from: normalizeDateOnly(new Date()),
     to: normalizeDateOnly(new Date(new Date().setDate(new Date().getDate() + 7))),
@@ -33,6 +34,7 @@ export default function Home() {
     if (!eventName || !date?.from || !date?.to || isSubmitting) return;
 
     setIsSubmitting(true);
+    setErrorMessage(null);
     try {
       const eventId = await createEvent({
         name: eventName,
@@ -43,7 +45,7 @@ export default function Home() {
       router.push(`/e/${eventId}`);
     } catch (error) {
       console.error(error);
-      alert(error instanceof Error ? error.message : "イベントの作成に失敗しました。");
+      setErrorMessage(error instanceof Error ? error.message : "イベントの作成に失敗しました。");
       setIsSubmitting(false);
     }
   };
@@ -71,8 +73,9 @@ export default function Home() {
             イベント名と対象期間を入力して、共有URLを作成してください。
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit}>
+          <CardContent className="pt-8">
+            <div className="space-y-6">
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="eventName" className="text-base font-semibold text-slate-700">
@@ -90,7 +93,7 @@ export default function Home() {
                 className="h-12 text-base transition-shadow focus-visible:ring-blue-500"
               />
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="description" className="text-base font-semibold text-slate-700">
@@ -100,7 +103,9 @@ export default function Home() {
               </div>
               <Textarea
                 id="description"
-                placeholder="例: 場所は新宿周辺を予定しています。&#10;この期間の中で都合の良い日と時間を教えてください！"
+                placeholder={
+                  "例: 場所は新宿周辺を予定しています。\nこの期間の中で都合の良い日と時間を教えてください！"
+                }
                 value={description}
                 maxLength={200}
                 onChange={(e) => setDescription(e.target.value)}
@@ -161,28 +166,37 @@ export default function Home() {
                 </PopoverContent>
               </Popover>
             </div>
-          </form>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4 border-t-2 border-slate-200 bg-slate-50/50 p-6 sm:p-8">
-          <p className="text-sm leading-6 text-slate-500">
-            作成すると、共有 URL を知る人がイベント内容を閲覧できます。{" "}
-            <Link className="font-semibold text-blue-700 underline-offset-4 hover:underline" href="/terms">
-              利用規約
-            </Link>
-            と{" "}
-            <Link className="font-semibold text-blue-700 underline-offset-4 hover:underline" href="/privacy">
-              プライバシーポリシー
-            </Link>
-            を確認してください。
-          </p>
-          <Button
-            className="h-14 w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg font-bold shadow-md transition-all hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98]"
-            onClick={handleSubmit}
-            disabled={!eventName || !date?.from || !date?.to || isSubmitting}
-          >
-            {isSubmitting ? "作成中..." : "イベントを作成する"}
-          </Button>
-        </CardFooter>
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4 border-t-2 border-slate-200 bg-slate-50/50 p-6 sm:p-8">
+            {errorMessage ? (
+              <div
+                role="alert"
+                className="w-full rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"
+              >
+                {errorMessage}
+              </div>
+            ) : null}
+            <p className="text-sm leading-6 text-slate-500">
+              作成すると、共有 URL を知る人がイベント内容を閲覧できます。{" "}
+              <Link className="font-semibold text-blue-700 underline-offset-4 hover:underline" href="/terms">
+                利用規約
+              </Link>
+              と{" "}
+              <Link className="font-semibold text-blue-700 underline-offset-4 hover:underline" href="/privacy">
+                プライバシーポリシー
+              </Link>
+              を確認してください。
+            </p>
+            <Button
+              type="submit"
+              className="h-14 w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg font-bold shadow-md transition-all hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98]"
+              disabled={!eventName || !date?.from || !date?.to || isSubmitting}
+            >
+              {isSubmitting ? "作成中..." : "イベントを作成する"}
+            </Button>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );
