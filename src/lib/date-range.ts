@@ -3,19 +3,19 @@ import type { DateRange } from "react-day-picker";
 
 export type DateRangePreset = "today" | "week" | "twoWeeks" | "month";
 
-function normalizeRangeDate(date: Date) {
+export function normalizeCalendarDate(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 export function getTodayDate() {
-  return normalizeRangeDate(new Date());
+  return normalizeCalendarDate(new Date());
 }
 
 export function getPresetDateRange(
   preset: DateRangePreset,
   today: Date = getTodayDate()
 ): DateRange {
-  const start = normalizeRangeDate(today);
+  const start = normalizeCalendarDate(today);
 
   switch (preset) {
     case "today":
@@ -30,7 +30,7 @@ export function getPresetDateRange(
 }
 
 export function getMaxEndDate(startDate: Date) {
-  return addMonths(normalizeRangeDate(startDate), 3);
+  return addMonths(normalizeCalendarDate(startDate), 3);
 }
 
 export function getDateRangeDays(range: DateRange | undefined) {
@@ -48,7 +48,7 @@ export function cloneDateRange(range: DateRange | undefined): DateRange | undefi
   }
 
   return {
-    from: range.from ? normalizeRangeDate(range.from) : undefined,
-    to: range.to ? normalizeRangeDate(range.to) : undefined,
+    from: range.from ? normalizeCalendarDate(range.from) : undefined,
+    to: range.to ? normalizeCalendarDate(range.to) : undefined,
   };
 }

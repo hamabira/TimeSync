@@ -30,6 +30,11 @@ import { Label } from "@/components/ui/label";
 import { TimeBandHeatmap } from "@/components/time-band-heatmap";
 import { getEventWithParticipants, submitResponse } from "@/app/actions";
 import {
+  dateOnlyToDate,
+  dateToDateOnly,
+  type DateOnly,
+} from "@/lib/date-only";
+import {
   buildTimeBandRows,
   buildTopSegments,
   formatBandSummary,
@@ -38,7 +43,6 @@ import {
   getTimeBandKey,
   MAX_RESPONSE_SLOTS,
   normalizeParticipantName,
-  normalizeDateOnly,
   parseTimeRange,
   type EventWithParticipants,
   type TimeBandSegment,
@@ -47,7 +51,7 @@ import { cn } from "@/lib/utils";
 
 type TimeSlotDraft = {
   id: string;
-  date: Date;
+  date: DateOnly;
   startTime: string;
   endTime: string;
 };
@@ -67,24 +71,16 @@ function hydrateEventData(data: EventWithParticipants) {
   return {
     event: {
       ...data.event,
-      startDate: normalizeDateOnly(new Date(data.event.startDate)),
-      endDate: normalizeDateOnly(new Date(data.event.endDate)),
       createdAt: new Date(data.event.createdAt),
     },
-    participants: data.participants.map((participant) => ({
-      ...participant,
-      timeSlots: participant.timeSlots.map((slot) => ({
-        ...slot,
-        date: normalizeDateOnly(new Date(slot.date)),
-      })),
-    })),
+    participants: data.participants,
   } satisfies EventWithParticipants;
 }
 
-function createDefaultSlot(date: Date): TimeSlotDraft {
+function createDefaultSlot(date: DateOnly): TimeSlotDraft {
   return {
     id: crypto.randomUUID(),
-    date: normalizeDateOnly(date),
+    date,
     startTime: "19:00",
     endTime: "21:00",
   };
@@ -180,15 +176,14 @@ export default function EventPage() {
     loadEvent();
   };
 
-  const selectedDates = useMemo(() => {
-    const unique = new Map<number, Date>();
-
-    timeSlots.forEach((slot) => {
-      unique.set(slot.date.getTime(), slot.date);
-    });
-
-    return [...unique.values()].sort((left, right) => left.getTime() - right.getTime());
-  }, [timeSlots]);
+  const selectedDateKeys = useMemo(
+    () => [...new Set(timeSlots.map((slot) => slot.date))].sort(),
+    [timeSlots]
+  );
+  const selectedDates = useMemo(
+    () => selectedDateKeys.map((date) => dateOnlyToDate(date)),
+    [selectedDateKeys]
+  );
 
   const rows = useMemo(() => buildTimeBandRows(participantsData), [participantsData]);
   const candidates = useMemo(() => buildTopSegments(rows).slice(0, 3), [rows]);
@@ -205,7 +200,7 @@ export default function EventPage() {
     setExpandedSelectedBand(false);
 
     const bandKey = getTimeBandKey(band.date, band.startHour);
-    const element = document.getElementById(`time-band-${band.date.getTime()}`);
+    const element = document.getElementById(`time-band-${band.date}`);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
@@ -216,26 +211,26 @@ export default function EventPage() {
 
   const handleSelectDates = (dates: Date[] | undefined) => {
     const nextDates = dates ?? [];
-    const normalizedDates = nextDates.map((date) => normalizeDateOnly(date));
+    const normalizedDateKeys = [...new Set(nextDates.map((date) => dateToDateOnly(date)))].sort();
 
     const kept = timeSlots.filter((slot) =>
-      normalizedDates.some((date) => date.getTime() === slot.date.getTime())
+      normalizedDateKeys.includes(slot.date)
     );
 
-    const keptDates = new Set(kept.map((slot) => slot.date.getTime()));
-    const additions = normalizedDates
-      .filter((date) => !keptDates.has(date.getTime()))
+    const keptDates = new Set(kept.map((slot) => slot.date));
+    const additions = normalizedDateKeys
+      .filter((date) => !keptDates.has(date))
       .slice(0, Math.max(0, MAX_RESPONSE_SLOTS - kept.length))
       .map((date) => createDefaultSlot(date));
 
-    if (kept.length + additions.length < normalizedDates.length) {
+    if (kept.length + additions.length < normalizedDateKeys.length) {
       setNotice({ type: "error", message: "時間帯は20件以内で選択してください。" });
     }
 
     setTimeSlots([...kept, ...additions]);
   };
 
-  const addTimeSlot = (date: Date) => {
+  const addTimeSlot = (date: DateOnly) => {
     if (timeSlots.length >= MAX_RESPONSE_SLOTS) {
       setNotice({ type: "error", message: "時間帯は20件以内で選択してください。" });
       return;
@@ -273,7 +268,7 @@ export default function EventPage() {
 
     const text = [
       `候補時間: ${formatBandSummary(selectedBand)}`,
-      `日付: ${format(selectedBand.date, "yyyy/MM/dd (E)", { locale: ja })}`,
+      `日付: ${format(dateOnlyToDate(selectedBand.date), "yyyy/MM/dd (E)", { locale: ja })}`,
       formatParticipantLine(selectedBand.attendeeNames),
     ].join("\n");
 
@@ -397,6 +392,9 @@ export default function EventPage() {
     );
   }
 
+  const eventStartDate = dateOnlyToDate(eventData.startDate);
+  const eventEndDate = dateOnlyToDate(eventData.endDate);
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 py-6">
       <section className="space-y-4">
@@ -419,8 +417,8 @@ export default function EventPage() {
             <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
               <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600">
                 <CalendarIcon className="h-4 w-4" />
-                {format(eventData.startDate, "yyyy/MM/dd", { locale: ja })} 〜{" "}
-                {format(eventData.endDate, "yyyy/MM/dd", { locale: ja })}
+                {format(eventStartDate, "yyyy/MM/dd", { locale: ja })} 〜{" "}
+                {format(eventEndDate, "yyyy/MM/dd", { locale: ja })}
               </span>
               <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600">
                 <Users className="h-4 w-4" />
@@ -475,12 +473,12 @@ export default function EventPage() {
                   mode="multiple"
                   selected={selectedDates}
                   onSelect={handleSelectDates}
-                  defaultMonth={eventData.startDate}
-                  startMonth={eventData.startDate}
-                  endMonth={eventData.endDate}
+                  defaultMonth={eventStartDate}
+                  startMonth={eventStartDate}
+                  endMonth={eventEndDate}
                   disabled={[
-                    { before: eventData.startDate },
-                    { after: eventData.endDate },
+                    { before: eventStartDate },
+                    { after: eventEndDate },
                   ]}
                   numberOfMonths={1}
                   showOutsideDays={true}
@@ -505,14 +503,15 @@ export default function EventPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {selectedDates.map((date) => {
+                    {selectedDateKeys.map((dateKey) => {
+                      const date = dateOnlyToDate(dateKey);
                       const slotsForDate = timeSlots.filter(
-                        (slot) => slot.date.getTime() === date.getTime()
+                        (slot) => slot.date === dateKey
                       );
 
                       return (
                         <div
-                          key={date.toISOString()}
+                          key={dateKey}
                           className="rounded-xl border-2 border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
                         >
                           <div className="flex items-center justify-between border-b-2 border-slate-200 px-4 py-3">
@@ -524,7 +523,7 @@ export default function EventPage() {
                               size="sm"
                               type="button"
                               className="text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                              onClick={() => addTimeSlot(date)}
+                              onClick={() => addTimeSlot(dateKey)}
                               disabled={timeSlots.length >= MAX_RESPONSE_SLOTS}
                             >
                               + 時間を追加
@@ -641,7 +640,7 @@ export default function EventPage() {
             ) : (
               <div className="space-y-3">
                 {candidates.map((candidate, index) => {
-                  const candidateKey = `${candidate.date.getTime()}-${candidate.startHour}`;
+                  const candidateKey = getTimeBandKey(candidate.date, candidate.startHour);
                   const isExpanded = expandedCandidateKey === candidateKey;
 
                   return (
@@ -676,7 +675,7 @@ export default function EventPage() {
                             第{index + 1}候補
                           </div>
                           <div className="mt-1 text-lg font-bold text-slate-800">
-                            {format(candidate.date, "M/d (E)", { locale: ja })}
+                            {format(dateOnlyToDate(candidate.date), "M/d (E)", { locale: ja })}
                           </div>
                         </div>
                         <div
@@ -712,7 +711,7 @@ export default function EventPage() {
                   {selectedBand ? (
                     <>
                       <div className="mt-2 text-sm text-slate-600">
-                        {format(selectedBand.date, "M/d (E)", { locale: ja })}
+                        {format(dateOnlyToDate(selectedBand.date), "M/d (E)", { locale: ja })}
                       </div>
                       <div className="mt-1 text-base font-bold text-slate-900">
                         {formatBandSummary(selectedBand)}

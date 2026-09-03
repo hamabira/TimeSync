@@ -2,6 +2,7 @@ import { asc, eq, inArray } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 import { MAX_EVENT_PARTICIPANTS, MAX_EVENT_SLOTS } from "../lib/limits.ts";
+import { storedDateToDateOnly, type DateOnly } from "../lib/date-only.ts";
 import type { EventWithParticipants, TimeSlotRecord } from "../lib/scheduling.ts";
 import * as schema from "./schema.ts";
 
@@ -14,7 +15,7 @@ type ParticipantQueryRow = {
 
 type TimeSlotQueryRow = {
   participantId: string;
-  date: Date;
+  date: DateOnly;
   startTime: string;
   endTime: string;
 };
@@ -31,7 +32,11 @@ export function formatParticipantsWithSlots(
 
   for (const slot of allTimeSlots) {
     const list = slotsByParticipant.get(slot.participantId) ?? [];
-    list.push({ date: slot.date, startTime: slot.startTime, endTime: slot.endTime });
+    list.push({
+      date: storedDateToDateOnly(slot.date),
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+    });
     slotsByParticipant.set(slot.participantId, list);
   }
 

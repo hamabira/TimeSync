@@ -8,7 +8,7 @@ import {
   parseTimeRange,
 } from "../src/lib/scheduling.ts";
 
-const date = new Date("2026-08-13T00:00:00.000Z");
+const date = "2026-08-13";
 
 function participant(id, name, startTime, endTime) {
   return {

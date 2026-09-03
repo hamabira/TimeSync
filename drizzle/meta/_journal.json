@@ -22,6 +22,13 @@
       "when": 1788456217238,
       "tag": "20260904120000_event_limits",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788460334000,
+      "tag": "20260904140000_date_only",
+      "breakpoints": true
     }
   ]
 }
