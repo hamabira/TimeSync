@@ -45,5 +45,7 @@ next-env.d.ts
 .wrangler/
 .dev.vars
 
-# local dev
+# local development artifacts
 dev.log*
+/logs/
+/graphify-out/
