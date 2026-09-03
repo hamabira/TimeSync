@@ -2,7 +2,8 @@
 
 import { getDb } from "@/db";
 import { events, participants, timeSlots } from "@/db/schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { persistParticipantResponse } from "@/db/response";
+import { eq, inArray } from "drizzle-orm";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
@@ -228,41 +229,7 @@ export async function submitResponse(
     }
   }
 
-  const existingParticipants = await db
-    .select({ id: participants.id })
-    .from(participants)
-    .where(and(eq(participants.eventId, eventId), eq(participants.name, normalizedName)));
-  const existingParticipantIds = existingParticipants.map((participant) => participant.id);
-  const participantId = crypto.randomUUID();
-
-  // D1 の batch は単一トランザクションとして実行されるため、
-  // 既存回答の削除と新規回答の挿入をまとめても途中失敗で旧回答だけ消えることはない。
-  const insertStatements = [
-    db.insert(participants).values({
-      id: participantId,
-      eventId,
-      name: normalizedName,
-    }),
-    db.insert(timeSlots).values(
-      validatedSlots.map((slot) => ({
-        id: crypto.randomUUID(),
-        participantId,
-        date: slot.date,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-      }))
-    ),
-  ] as const;
-
-  if (existingParticipantIds.length > 0) {
-    await db.batch([
-      db.delete(timeSlots).where(inArray(timeSlots.participantId, existingParticipantIds)),
-      db.delete(participants).where(inArray(participants.id, existingParticipantIds)),
-      ...insertStatements,
-    ]);
-  } else {
-    await db.batch([...insertStatements]);
-  }
+  await persistParticipantResponse(db, eventId, normalizedName, validatedSlots);
 
   return true;
 }

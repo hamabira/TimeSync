@@ -8,6 +8,13 @@
       "when": 1777664722029,
       "tag": "0000_ancient_sentinels",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788454665916,
+      "tag": "20260903165745_ancient_leo",
+      "breakpoints": true
     }
   ]
 }
