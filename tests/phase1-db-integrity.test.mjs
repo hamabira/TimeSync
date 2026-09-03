@@ -34,6 +34,9 @@ const dateOnlyMigration = readFileSync(
 
 const eventId = "11111111-1111-4111-8111-111111111111";
 const secondEventId = "22222222-2222-4222-8222-222222222222";
+const SLOTS_PER_PARTICIPANT_AT_CAPACITY =
+  MAX_EVENT_SLOTS / MAX_EVENT_PARTICIPANTS;
+const LEGACY_SLOTS_PER_PARTICIPANT = 25;
 
 class LocalD1Statement {
   constructor(database, query) {
@@ -220,9 +223,9 @@ function explainDetails(local, query, parameters) {
 
 test("event limits are explicit and match the response-size design", () => {
   assert.equal(MAX_EVENT_PARTICIPANTS, 100);
-  assert.equal(MAX_RESPONSE_SLOTS, 20);
   assert.equal(MAX_EVENT_SLOTS, 2_000);
-  assert.equal(MAX_EVENT_PARTICIPANTS * MAX_RESPONSE_SLOTS, MAX_EVENT_SLOTS);
+  assert.equal(MAX_RESPONSE_SLOTS, MAX_EVENT_SLOTS);
+  assert.equal(SLOTS_PER_PARTICIPANT_AT_CAPACITY, 20);
 });
 
 test("a response overwrite keeps the participant ID and replaces all slots", async () => {
@@ -354,8 +357,17 @@ test("slot limit reaches exactly 2000, replaces at capacity, and rolls back an o
   seedEvent(local);
   const db = createAppDb(local);
 
-  await persistParticipantResponse(db, eventId, "Alice", makeSlots(MAX_RESPONSE_SLOTS, 500));
-  await addParticipantResponses(db, MAX_EVENT_PARTICIPANTS - 2, MAX_RESPONSE_SLOTS);
+  await persistParticipantResponse(
+    db,
+    eventId,
+    "Alice",
+    makeSlots(SLOTS_PER_PARTICIPANT_AT_CAPACITY, 500)
+  );
+  await addParticipantResponses(
+    db,
+    MAX_EVENT_PARTICIPANTS - 2,
+    SLOTS_PER_PARTICIPANT_AT_CAPACITY
+  );
   assert.equal(getParticipantCount(local), MAX_EVENT_PARTICIPANTS - 1);
   await persistParticipantResponse(db, eventId, "Boundary participant", makeSlots(19, 550));
   assert.equal(getParticipantCount(local), MAX_EVENT_PARTICIPANTS);
@@ -365,14 +377,14 @@ test("slot limit reaches exactly 2000, replaces at capacity, and rolls back an o
     db,
     eventId,
     "Boundary participant",
-    makeSlots(MAX_RESPONSE_SLOTS, 575)
+    makeSlots(SLOTS_PER_PARTICIPANT_AT_CAPACITY, 575)
   );
   assert.equal(getEventSlotCount(local), MAX_EVENT_SLOTS);
 
   const [aliceBefore] = (await getParticipantRows(db)).filter(
     (participant) => participant.name === "Alice"
   );
-  const replacement = makeSlots(MAX_RESPONSE_SLOTS, 600);
+  const replacement = makeSlots(SLOTS_PER_PARTICIPANT_AT_CAPACITY, 600);
   await persistParticipantResponse(db, eventId, "Alice", replacement);
 
   const [aliceAtCapacity] = (await getParticipantRows(db)).filter(
@@ -386,7 +398,7 @@ test("slot limit reaches exactly 2000, replaces at capacity, and rolls back an o
     responseFingerprint(replacement)
   );
 
-  const overflowAttempt = makeSlots(MAX_RESPONSE_SLOTS + 1, 700);
+  const overflowAttempt = makeSlots(SLOTS_PER_PARTICIPANT_AT_CAPACITY + 1, 700);
   await assertLimitRejected(
     () => persistParticipantResponse(db, eventId, "Alice", overflowAttempt),
     /回答枠.*2,000件/
@@ -477,7 +489,7 @@ test("event reads are bounded and deterministic for legacy over-limit data", asy
       `Legacy ${String(participantIndex).padStart(3, "0")}`
     );
 
-    for (let slotIndex = 0; slotIndex < MAX_RESPONSE_SLOTS + 5; slotIndex += 1) {
+    for (let slotIndex = 0; slotIndex < LEGACY_SLOTS_PER_PARTICIPANT; slotIndex += 1) {
       insertSlot.run(
         `${participantId}-slot-${String(slotIndex).padStart(2, "0")}`,
         participantId,
@@ -498,7 +510,7 @@ test("event reads are bounded and deterministic for legacy over-limit data", asy
   );
   assert.deepEqual(
     participants.slice(0, MAX_EVENT_PARTICIPANTS - 20).map((participant) => participant.timeSlots.length),
-    Array(MAX_EVENT_PARTICIPANTS - 20).fill(MAX_RESPONSE_SLOTS + 5)
+    Array(MAX_EVENT_PARTICIPANTS - 20).fill(LEGACY_SLOTS_PER_PARTICIPANT)
   );
   assert.ok(
     participants.slice(MAX_EVENT_PARTICIPANTS - 20).every((participant) => participant.timeSlots.length === 0)
