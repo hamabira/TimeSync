@@ -3,9 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
 import { createEvent } from "@/app/actions";
-import { ja } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
@@ -13,10 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
+import { DateRangePicker } from "@/components/date-range-picker";
+import { getPresetDateRange } from "@/lib/date-range";
 import { normalizeDateOnly } from "@/lib/scheduling";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 
 export default function Home() {
   const router = useRouter();
@@ -24,10 +21,7 @@ export default function Home() {
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: normalizeDateOnly(new Date()),
-    to: normalizeDateOnly(new Date(new Date().setDate(new Date().getDate() + 7))),
-  });
+  const [date, setDate] = useState<DateRange | undefined>(() => getPresetDateRange("week"));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +60,7 @@ export default function Home() {
         </p>
       </section>
 
-      <Card className="overflow-hidden border-0 shadow-lg ring-2 ring-slate-200">
+      <Card className="-mx-4 overflow-hidden rounded-none border-0 shadow-lg ring-2 ring-slate-200 sm:mx-0 sm:rounded-xl">
         <CardHeader className="bg-slate-50/50 border-b-2 border-slate-200 pb-6">
           <CardTitle className="text-2xl font-bold text-slate-800">新しくイベントを作る</CardTitle>
           <CardDescription className="text-base text-slate-500">
@@ -113,58 +107,14 @@ export default function Home() {
               />
             </div>
 
-            <div className="space-y-2 flex flex-col">
+            <div className="flex flex-col space-y-2">
               <Label className="text-base font-semibold text-slate-700">
                 対象期間 <span className="text-red-500">*</span>
               </Label>
               <span className="text-sm text-slate-500 mb-2">
                 参加者が空き日程を提案できる範囲を指定します。
               </span>
-              <Popover>
-                <PopoverTrigger
-                  id="date"
-                  className={cn(
-                    "inline-flex min-w-0 items-center justify-start gap-2 whitespace-nowrap rounded-lg border-2 border-input bg-background px-4 text-left text-base font-normal shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50",
-                    "h-12 w-full max-w-sm",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="h-5 w-5 shrink-0" />
-                  <span className="min-w-0 truncate">
-                    {date?.from ? (
-                      date.to ? (
-                        <>
-                          {format(date.from, "yyyy年MM月dd日")} -{" "}
-                          {format(date.to, "yyyy年MM月dd日")}
-                        </>
-                      ) : (
-                        format(date.from, "yyyy年MM月dd日")
-                      )
-                    ) : (
-                      "期間を選択"
-                    )}
-                  </span>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto max-w-[calc(100vw-2rem)] overflow-x-auto p-0"
-                  align="start"
-                >
-                  <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={date?.from}
-                    selected={date}
-                    onSelect={setDate}
-                    numberOfMonths={1}
-                    locale={ja}
-                    showOutsideDays={true}
-                    fixedWeeks={true}
-                    captionLayout="dropdown"
-                    fromYear={new Date().getFullYear()}
-                    toYear={new Date().getFullYear() + 5}
-                  />
-                </PopoverContent>
-              </Popover>
+              <DateRangePicker value={date} onChange={setDate} />
             </div>
             </div>
           </CardContent>
