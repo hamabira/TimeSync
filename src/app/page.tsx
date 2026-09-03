@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DateRangePicker } from "@/components/date-range-picker";
 import { getPresetDateRange } from "@/lib/date-range";
-import { normalizeDateOnly } from "@/lib/scheduling";
+import { dateToDateOnly } from "@/lib/date-only";
 
 export default function Home() {
   const router = useRouter();
@@ -33,8 +33,8 @@ export default function Home() {
       const eventId = await createEvent({
         name: eventName,
         description,
-        startDate: normalizeDateOnly(date.from),
-        endDate: normalizeDateOnly(date.to),
+        startDate: dateToDateOnly(date.from),
+        endDate: dateToDateOnly(date.to),
       });
       router.push(`/e/${eventId}`);
     } catch (error) {

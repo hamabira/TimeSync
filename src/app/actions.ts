@@ -12,7 +12,13 @@ import { eq } from "drizzle-orm";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { MAX_RESPONSE_SLOTS } from "@/lib/limits";
 import {
-  getTokyoDateKey,
+  compareDateOnly,
+  isDateOnly,
+  storedDateToDateOnly,
+  validateDateOnlyRange,
+  type DateOnly,
+} from "@/lib/date-only";
+import {
   normalizeParticipantName,
   parseTimeRange,
   timeStringToMinutes,
@@ -21,12 +27,12 @@ import {
 type CreateEventInput = {
   name: string;
   description: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: DateOnly;
+  endDate: DateOnly;
 };
 
 type SubmitResponseInput = {
-  date: Date;
+  date: DateOnly;
   startTime: string;
   endTime: string;
 };
@@ -37,10 +43,6 @@ const UUID_PATTERN =
 
 function getDbFromRequest() {
   return getDb(getCloudflareContext().env);
-}
-
-function isValidDate(value: unknown): value is Date {
-  return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
 function assertValidEventId(eventId: string) {
@@ -69,21 +71,11 @@ export async function createEvent(data: CreateEventInput) {
     throw new Error("メモ・詳細は200文字以内で入力してください。");
   }
 
-  if (!isValidDate(data.startDate) || !isValidDate(data.endDate)) {
-    throw new Error("対象期間の日付が正しくありません。");
-  }
-
-  if (data.startDate.getTime() > data.endDate.getTime()) {
-    throw new Error("対象期間の終了日は開始日より後にしてください。");
-  }
-
-  const rangeDays = Math.round(
-    (data.endDate.getTime() - data.startDate.getTime()) / (24 * 60 * 60 * 1000)
+  const validatedDateRange = validateDateOnlyRange(
+    data.startDate,
+    data.endDate,
+    MAX_EVENT_RANGE_DAYS
   );
-
-  if (rangeDays > MAX_EVENT_RANGE_DAYS) {
-    throw new Error("対象期間は3か月以内で指定してください。");
-  }
 
   const db = getDbFromRequest();
   const eventId = crypto.randomUUID();
@@ -92,8 +84,8 @@ export async function createEvent(data: CreateEventInput) {
     id: eventId,
     name,
     description: description || null,
-    startDate: data.startDate,
-    endDate: data.endDate,
+    startDate: validatedDateRange.startDate,
+    endDate: validatedDateRange.endDate,
     createdAt: new Date(),
   });
 
@@ -111,7 +103,11 @@ export async function getEventWithParticipants(eventId: string) {
   const eventResult = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
   if (eventResult.length === 0) return null;
 
-  const event = eventResult[0];
+  const event = {
+    ...eventResult[0],
+    startDate: storedDateToDateOnly(eventResult[0].startDate),
+    endDate: storedDateToDateOnly(eventResult[0].endDate),
+  };
 
   const participantsWithSlots = await getEventParticipants(db, eventId);
 
@@ -162,7 +158,7 @@ export async function submitResponse(
       throw new Error("回答内容の形式が正しくありません。");
     }
 
-    if (!isValidDate(slot.date)) {
+    if (!isDateOnly(slot.date)) {
       throw new Error("日付が正しくありません。");
     }
 
@@ -177,7 +173,7 @@ export async function submitResponse(
       throw new Error("開始時刻は終了時刻より前にしてください。");
     }
 
-    const slotKey = `${getTokyoDateKey(slot.date)}-${slot.startTime}-${slot.endTime}`;
+    const slotKey = `${slot.date}-${slot.startTime}-${slot.endTime}`;
     uniqueSlots.set(slotKey, slot);
   }
 
@@ -195,14 +191,16 @@ export async function submitResponse(
     throw new Error("イベントが見つかりません。");
   }
 
-  const event = eventResult[0];
-  const eventStartKey = getTokyoDateKey(event.startDate);
-  const eventEndKey = getTokyoDateKey(event.endDate);
+  const eventStartKey = storedDateToDateOnly(eventResult[0].startDate);
+  const eventEndKey = storedDateToDateOnly(eventResult[0].endDate);
 
   for (const slot of validatedSlots) {
-    const slotKey = getTokyoDateKey(slot.date);
+    const slotKey = slot.date;
 
-    if (slotKey < eventStartKey || slotKey > eventEndKey) {
+    if (
+      compareDateOnly(slotKey, eventStartKey) < 0 ||
+      compareDateOnly(slotKey, eventEndKey) > 0
+    ) {
       throw new Error("日付が対象期間の範囲外です。");
     }
   }

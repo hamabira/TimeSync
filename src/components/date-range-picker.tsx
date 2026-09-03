@@ -23,9 +23,9 @@ import {
   getMaxEndDate,
   getPresetDateRange,
   getTodayDate,
+  normalizeCalendarDate,
   type DateRangePreset,
 } from "@/lib/date-range";
-import { normalizeDateOnly } from "@/lib/scheduling";
 import { cn } from "@/lib/utils";
 
 type SelectionField = "start" | "end";
@@ -246,7 +246,7 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
 
   const handleCalendarSelect = useCallback(
     (_selected: DateRange | undefined, triggerDate: Date) => {
-      const selectedDate = normalizeDateOnly(triggerDate);
+      const selectedDate = normalizeCalendarDate(triggerDate);
       const currentStart = draftRange?.from;
 
       if (!isPopoverOpen) {
@@ -260,7 +260,7 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
           currentEnd &&
           !isBefore(currentEnd, selectedDate) &&
           !isBefore(nextMaxEndDate, currentEnd)
-            ? normalizeDateOnly(currentEnd)
+            ? normalizeCalendarDate(currentEnd)
             : undefined;
 
         setDraftRange({ from: selectedDate, to: nextEndDate });
@@ -273,8 +273,8 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
       }
 
       setDraftRange({
-        from: normalizeDateOnly(currentStart),
-        to: selectedDate,
+        from: normalizeCalendarDate(currentStart),
+        to: normalizeCalendarDate(selectedDate),
       });
       setActiveField("end");
     },
@@ -364,8 +364,8 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
     }
 
     const nextRange = {
-      from: normalizeDateOnly(draftRange.from),
-      to: normalizeDateOnly(draftRange.to),
+      from: normalizeCalendarDate(draftRange.from),
+      to: normalizeCalendarDate(draftRange.to),
     };
 
     setDraftRange(nextRange);

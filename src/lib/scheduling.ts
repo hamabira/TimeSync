@@ -1,3 +1,5 @@
+import type { DateOnly } from "./date-only.ts";
+
 export const SCHEDULE_START_HOUR = 0;
 export const SCHEDULE_END_HOUR = 24;
 
@@ -18,7 +20,7 @@ export const SCHEDULE_AXIS_HOURS = Array.from(
 );
 
 export type TimeSlotRecord = {
-  date: Date;
+  date: DateOnly;
   startTime: string;
   endTime: string;
 };
@@ -33,8 +35,8 @@ export type EventRecord = {
   id: string;
   name: string;
   description: string | null;
-  startDate: Date;
-  endDate: Date;
+  startDate: DateOnly;
+  endDate: DateOnly;
   createdAt: Date;
 };
 
@@ -50,7 +52,7 @@ export type TimeBandCell = {
 };
 
 export type TimeBandSegment = {
-  date: Date;
+  date: DateOnly;
   startHour: number;
   endHour: number;
   attendeeNames: string[];
@@ -58,7 +60,7 @@ export type TimeBandSegment = {
 };
 
 export type TimeBandRow = {
-  date: Date;
+  date: DateOnly;
   cells: TimeBandCell[];
   segments: TimeBandSegment[];
   bestSegment: TimeBandSegment | null;
@@ -122,32 +124,8 @@ export function formatShortHour(hour: number) {
   return `${String(hour).padStart(2, "0")}:00`;
 }
 
-export function normalizeDateOnly(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-const tokyoDateFormatter = new Intl.DateTimeFormat("en-CA", {
-  timeZone: "Asia/Tokyo",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-
-export function getTokyoDateKey(date: Date) {
-  const parts = tokyoDateFormatter.formatToParts(date);
-  const year = parts.find((part) => part.type === "year")?.value;
-  const month = parts.find((part) => part.type === "month")?.value;
-  const day = parts.find((part) => part.type === "day")?.value;
-
-  if (!year || !month || !day) {
-    throw new Error("日付キーの生成に失敗しました。");
-  }
-
-  return `${year}-${month}-${day}`;
-}
-
-export function getTimeBandKey(date: Date, startHour: number) {
-  return `${date.getTime()}-${startHour}`;
+export function getTimeBandKey(date: DateOnly, startHour: number) {
+  return `${date}-${startHour}`;
 }
 
 export function formatBandSummary(segment: TimeBandSegment) {
@@ -194,14 +172,14 @@ function compareSegments(left: TimeBandSegment, right: TimeBandSegment) {
     return rightDuration - leftDuration;
   }
 
-  if (left.date.getTime() !== right.date.getTime()) {
-    return left.date.getTime() - right.date.getTime();
+  if (left.date !== right.date) {
+    return left.date < right.date ? -1 : 1;
   }
 
   return left.startHour - right.startHour;
 }
 
-function buildRowSegments(date: Date, cells: TimeBandCell[]): TimeBandSegment[] {
+function buildRowSegments(date: DateOnly, cells: TimeBandCell[]): TimeBandSegment[] {
   const segments: TimeBandSegment[] = [];
   let current: TimeBandSegment | null = null;
 
@@ -244,22 +222,22 @@ function buildRowSegments(date: Date, cells: TimeBandCell[]): TimeBandSegment[] 
 }
 
 export function buildTimeBandRows(participants: ParticipantRecord[]): TimeBandRow[] {
-  const dateMap = new Map<number, Date>();
+  const dateSet = new Set<DateOnly>();
 
   participants.forEach((participant) => {
     participant.timeSlots.forEach((slot) => {
-      dateMap.set(slot.date.getTime(), slot.date);
+      dateSet.add(slot.date);
     });
   });
 
-  return [...dateMap.entries()]
-    .sort(([left], [right]) => left - right)
-    .map(([, date]) => {
+  return [...dateSet]
+    .sort()
+    .map((date) => {
       const cells = SCHEDULE_HOURS.map((hour) => {
         const attendeeNames = participants
           .filter((participant) =>
             participant.timeSlots.some((slot) => {
-              if (slot.date.getTime() !== date.getTime()) {
+              if (slot.date !== date) {
                 return false;
               }
 
@@ -308,7 +286,7 @@ export function getBandSegmentAtHour(row: TimeBandRow, hour: number) {
 }
 
 export function isCellWithinBand(row: TimeBandRow, hour: number, segment: TimeBandSegment | null) {
-  if (!segment || row.date.getTime() !== segment.date.getTime()) {
+  if (!segment || row.date !== segment.date) {
     return false;
   }
 

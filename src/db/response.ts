@@ -5,6 +5,7 @@ import {
   MAX_EVENT_PARTICIPANTS,
   MAX_EVENT_SLOTS,
 } from "../lib/limits.ts";
+import type { DateOnly } from "../lib/date-only.ts";
 import * as schema from "./schema.ts";
 
 const { participants, timeSlots } = schema;
@@ -28,7 +29,7 @@ export function isEventResponseLimitError(
 }
 
 export type ParticipantResponseSlot = {
-  date: Date;
+  date: DateOnly;
   startTime: string;
   endTime: string;
 };

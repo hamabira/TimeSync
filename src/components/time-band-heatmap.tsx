@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 
+import { dateOnlyToDate } from "@/lib/date-only";
 import {
   formatHourRange,
   formatShortHour,
@@ -91,14 +92,14 @@ export function TimeBandHeatmap({
           {rows.map((row) => {
             return (
               <div
-                key={row.date.getTime()}
-                id={`time-band-${row.date.getTime()}`}
+                key={row.date}
+                id={`time-band-${row.date}`}
                 className="grid gap-1"
                 style={{ gridTemplateColumns: heatmapGridColumns }}
               >
                 <div className="sticky left-0 z-10 flex flex-col justify-center rounded-l-xl border-2 border-slate-200 bg-white px-4 py-3 shadow-[1px_0_0_0_#cbd5e1]">
                   <div className="text-sm font-semibold text-slate-800">
-                    {format(row.date, "M/d (E)", { locale: ja })}
+                    {format(dateOnlyToDate(row.date), "M/d (E)", { locale: ja })}
                   </div>
                   {row.bestSegment ? (
                     <div className="mt-1 text-xs text-slate-500">
@@ -117,7 +118,7 @@ export function TimeBandHeatmap({
 
                   return (
                     <button
-                      key={cell.hour}
+                      key={`${row.date}-${cell.hour}`}
                       type="button"
                       onClick={() => onSelectBand(getBandSegmentAtHour(row, cell.hour))}
                       className={cn(

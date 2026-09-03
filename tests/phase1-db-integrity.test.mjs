@@ -27,6 +27,10 @@ const phase2Migration = readFileSync(
   new URL("../drizzle/20260904120000_event_limits.sql", import.meta.url),
   "utf8"
 );
+const dateOnlyMigration = readFileSync(
+  new URL("../drizzle/20260904140000_date_only.sql", import.meta.url),
+  "utf8"
+);
 
 const eventId = "11111111-1111-4111-8111-111111111111";
 const secondEventId = "22222222-2222-4222-8222-222222222222";
@@ -106,7 +110,11 @@ class LocalD1Database {
   }
 }
 
-function createDatabase({ applyPhase1 = true, applyPhase2 = true } = {}) {
+function createDatabase({
+  applyPhase1 = true,
+  applyPhase2 = true,
+  applyDateOnly = applyPhase1 && applyPhase2,
+} = {}) {
   const local = new LocalD1Database();
   local.database.exec(baseMigration);
   if (applyPhase1) {
@@ -114,6 +122,9 @@ function createDatabase({ applyPhase1 = true, applyPhase2 = true } = {}) {
   }
   if (applyPhase2) {
     local.database.exec(phase2Migration);
+  }
+  if (applyDateOnly) {
+    local.database.exec(dateOnlyMigration);
   }
   return local;
 }
@@ -123,7 +134,7 @@ function seedEvent(local, id = eventId) {
     .prepare(
       "INSERT INTO events (id, name, start_date, end_date, created_at) VALUES (?, ?, ?, ?, ?)"
     )
-    .run(id, "Event", 1780000000, 1781000000, 1780000000);
+    .run(id, "Event", "2026-08-13", "2026-08-20", 1780000000);
 }
 
 function createAppDb(local) {
@@ -136,7 +147,7 @@ function makeSlots(count, offset = 0) {
     const startHour = 6 + (slotOffset % 16);
 
     return {
-      date: new Date(Date.UTC(2026, 7, 13 + (slotOffset % 10))),
+      date: `2026-08-${String(13 + (slotOffset % 10)).padStart(2, "0")}`,
       startTime: `${String(startHour).padStart(2, "0")}:00`,
       endTime: `${String(startHour + 1).padStart(2, "0")}:00`,
     };
@@ -184,7 +195,7 @@ async function assertLimitRejected(operation, expectedMessage) {
 
 function responseFingerprint(rows) {
   return rows
-    .map((row) => [row.date.toISOString(), row.startTime, row.endTime])
+    .map((row) => [row.date, row.startTime, row.endTime])
     .sort((left, right) => left.join(" ").localeCompare(right.join(" ")));
 }
 
@@ -220,26 +231,26 @@ test("a response overwrite keeps the participant ID and replaces all slots", asy
   const db = createAppDb(local);
 
   await persistParticipantResponse(db, eventId, "Alice", [
-    { date: new Date("2026-08-13T00:00:00.000Z"), startTime: "09:00", endTime: "10:00" },
-    { date: new Date("2026-08-14T00:00:00.000Z"), startTime: "11:00", endTime: "12:00" },
+    { date: "2026-08-13", startTime: "09:00", endTime: "10:00" },
+    { date: "2026-08-14", startTime: "11:00", endTime: "12:00" },
   ]);
 
   const [firstParticipant] = await getParticipantRows(db);
   assert.ok(firstParticipant);
   assert.deepEqual(await getSlotsForParticipant(db, firstParticipant.id), [
-    ["2026-08-13T00:00:00.000Z", "09:00", "10:00"],
-    ["2026-08-14T00:00:00.000Z", "11:00", "12:00"],
+    ["2026-08-13", "09:00", "10:00"],
+    ["2026-08-14", "11:00", "12:00"],
   ]);
 
   await persistParticipantResponse(db, eventId, "Alice", [
-    { date: new Date("2026-08-15T00:00:00.000Z"), startTime: "13:00", endTime: "14:00" },
+    { date: "2026-08-15", startTime: "13:00", endTime: "14:00" },
   ]);
 
   const participants = await getParticipantRows(db);
   assert.equal(participants.length, 1);
   assert.equal(participants[0].id, firstParticipant.id);
   assert.deepEqual(await getSlotsForParticipant(db, participants[0].id), [
-    ["2026-08-15T00:00:00.000Z", "13:00", "14:00"],
+    ["2026-08-15", "13:00", "14:00"],
   ]);
 });
 
@@ -249,16 +260,16 @@ test("concurrent same-name submissions leave one complete response set", async (
   const db = createAppDb(local);
 
   await persistParticipantResponse(db, eventId, "Alice", [
-    { date: new Date("2026-08-12T00:00:00.000Z"), startTime: "08:00", endTime: "09:00" },
+    { date: "2026-08-12", startTime: "08:00", endTime: "09:00" },
   ]);
   const [initialParticipant] = await getParticipantRows(db);
 
   const responseA = [
-    { date: new Date("2026-08-13T00:00:00.000Z"), startTime: "09:00", endTime: "11:00" },
-    { date: new Date("2026-08-14T00:00:00.000Z"), startTime: "12:00", endTime: "13:00" },
+    { date: "2026-08-13", startTime: "09:00", endTime: "11:00" },
+    { date: "2026-08-14", startTime: "12:00", endTime: "13:00" },
   ];
   const responseB = [
-    { date: new Date("2026-08-15T00:00:00.000Z"), startTime: "18:00", endTime: "20:00" },
+    { date: "2026-08-15", startTime: "18:00", endTime: "20:00" },
   ];
 
   await Promise.all([
@@ -277,7 +288,7 @@ test("concurrent same-name submissions leave one complete response set", async (
     `unexpected mixed response: ${JSON.stringify(actualSlots)}`
   );
   assert.notDeepEqual(actualSlots, [
-    ["2026-08-12T00:00:00.000Z", "08:00", "09:00"],
+    ["2026-08-12", "08:00", "09:00"],
   ]);
 });
 
@@ -402,19 +413,19 @@ test("participant slot formatting groups rows in one pass", () => {
     [
       {
         participantId: "participant-b",
-        date: new Date("2026-08-14T00:00:00.000Z"),
+        date: "2026-08-14",
         startTime: "11:00",
         endTime: "12:00",
       },
       {
         participantId: "participant-a",
-        date: new Date("2026-08-13T00:00:00.000Z"),
+        date: "2026-08-13",
         startTime: "09:00",
         endTime: "10:00",
       },
       {
         participantId: "legacy-unknown",
-        date: new Date("2026-08-15T00:00:00.000Z"),
+        date: "2026-08-15",
         startTime: "13:00",
         endTime: "14:00",
       },
@@ -427,7 +438,7 @@ test("participant slot formatting groups rows in one pass", () => {
       name: "Alice",
       timeSlots: [
         {
-          date: new Date("2026-08-13T00:00:00.000Z"),
+          date: "2026-08-13",
           startTime: "09:00",
           endTime: "10:00",
         },
@@ -438,7 +449,7 @@ test("participant slot formatting groups rows in one pass", () => {
       name: "Bob",
       timeSlots: [
         {
-          date: new Date("2026-08-14T00:00:00.000Z"),
+          date: "2026-08-14",
           startTime: "11:00",
           endTime: "12:00",
         },
