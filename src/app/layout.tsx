@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const shareImageVersion = "20260517";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: getSiteUrl(),
   title: "AkiMatch | 空き時間が重なるところを見つける日程調整アプリ",
   description: "みんなの空き時間、重なるところだけすぐ見える。予定がバラバラな学生グループ向けの日程調整アプリです。",
   icons: {

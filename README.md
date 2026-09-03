@@ -90,19 +90,19 @@ pnpm run dev:log
 
 ```bash
 pnpm lint
-pnpm build
+NEXT_PUBLIC_SITE_URL="https://your-public-origin.example" pnpm build
 ```
 
 Cloudflare Workers 向けのビルド結果まで確認する場合は、OpenNext Cloudflare adapter のビルドも実行します。
 
 ```bash
-pnpm exec opennextjs-cloudflare build
+NEXT_PUBLIC_SITE_URL="https://your-public-origin.example" pnpm exec opennextjs-cloudflare build
 ```
 
 ローカルで Workers runtime のプレビューを確認する場合は、次のコマンドを使います。
 
 ```bash
-pnpm run preview
+NEXT_PUBLIC_SITE_URL="https://your-public-origin.example" pnpm run preview
 ```
 
 ## Cloudflare デプロイ手順
@@ -145,12 +145,23 @@ pnpm wrangler d1 migrations apply akimatch_db --remote
 ### 4. Workers runtime でプレビューする
 
 ```bash
-pnpm run preview
+NEXT_PUBLIC_SITE_URL="https://your-public-origin.example" pnpm run preview
 ```
 
-### 5. GitHub Actions の secrets を設定する
+### 5. 公開 URL と GitHub Actions の secrets を設定する
 
-デプロイ変更を `main` にマージする前に、リポジトリ secrets に次の値を設定します。
+Next.js は `NEXT_PUBLIC_SITE_URL` を `metadataBase` として使い、Open Graph と Twitter の画像パスを絶対 URL に変換します。本番ビルドでは、公開 origin を推測したり localhost にフォールバックしたりしません。この値は Next.js のビルド時に埋め込まれるため、`wrangler.toml` の runtime variable ではなく、ビルドを実行する GitHub Actions に渡す必要があります。
+
+GitHub のリポジトリ設定で `Settings` → `Secrets and variables` → `Actions` → `Variables` を開き、次の **Repository variable** を追加します。
+
+- 名前: `NEXT_PUBLIC_SITE_URL`
+- 値: Cloudflare Worker の公開 HTTPS origin（例: `https://your-worker.example.workers.dev`）
+
+値には origin だけを指定し、パス、query、fragment、認証情報は含めません。`check` と `deploy` の両ジョブが同じ値を使うため、`production` Environment だけの variable ではなく Repository variable として設定します。これは公開値なので secret にはしません。
+
+未設定、無効な URL、HTTPS 以外の値では production build が失敗します。変数をリポジトリに追加・変更した場合は、新しい値を埋め込むために GitHub Actions で再ビルドと再デプロイが必要です。
+
+続いて、デプロイ変更を `main` にマージする前に、リポジトリ secrets に次の値を設定します。
 
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
