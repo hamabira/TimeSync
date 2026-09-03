@@ -321,7 +321,12 @@ export default function EventPage() {
     setNotice(null);
 
     try {
-      await submitResponse(eventId, normalizedName, timeSlots);
+      const result = await submitResponse(eventId, normalizedName, timeSlots);
+
+      if (!result.ok) {
+        setNotice({ type: "error", message: result.error });
+        return;
+      }
 
       const data = await getEventWithParticipants(eventId);
       if (data) {

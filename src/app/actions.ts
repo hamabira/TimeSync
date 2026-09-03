@@ -1,15 +1,18 @@
 "use server";
 
 import { getDb } from "@/db";
-import { events, participants, timeSlots } from "@/db/schema";
-import { persistParticipantResponse } from "@/db/response";
-import { eq, inArray } from "drizzle-orm";
+import { getEventParticipants } from "@/db/event";
+import { events } from "@/db/schema";
+import {
+  isEventResponseLimitError,
+  persistParticipantResponse,
+} from "@/db/response";
+import { eq } from "drizzle-orm";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { MAX_RESPONSE_SLOTS } from "@/lib/limits";
 import {
-  EventWithParticipants,
   getTokyoDateKey,
-  MAX_RESPONSE_SLOTS,
   normalizeParticipantName,
   parseTimeRange,
   timeStringToMinutes,
@@ -110,32 +113,7 @@ export async function getEventWithParticipants(eventId: string) {
 
   const event = eventResult[0];
 
-  // 参加者と回答を取得
-  const participantsResult = await db.select().from(participants).where(eq(participants.eventId, eventId));
-
-  const participantIds = participantsResult.map((participant) => participant.id);
-  const allTimeSlots =
-    participantIds.length > 0
-      ? await db
-          .select()
-          .from(timeSlots)
-          .where(inArray(timeSlots.participantId, participantIds))
-      : [];
-
-  const slotsByParticipant = new Map<string, { date: Date; startTime: string; endTime: string }[]>();
-  for (const slot of allTimeSlots) {
-    const list = slotsByParticipant.get(slot.participantId) ?? [];
-    list.push({ date: slot.date, startTime: slot.startTime, endTime: slot.endTime });
-    slotsByParticipant.set(slot.participantId, list);
-  }
-
-  const participantsWithSlots: EventWithParticipants["participants"] = participantsResult.map(
-    (participant) => ({
-      id: participant.id,
-      name: participant.name,
-      timeSlots: slotsByParticipant.get(participant.id) ?? [],
-    })
-  );
+  const participantsWithSlots = await getEventParticipants(db, eventId);
 
   return {
     event,
@@ -229,7 +207,15 @@ export async function submitResponse(
     }
   }
 
-  await persistParticipantResponse(db, eventId, normalizedName, validatedSlots);
+  try {
+    await persistParticipantResponse(db, eventId, normalizedName, validatedSlots);
+  } catch (error) {
+    if (isEventResponseLimitError(error)) {
+      return { ok: false as const, error: error.message };
+    }
 
-  return true;
+    throw error;
+  }
+
+  return { ok: true as const };
 }

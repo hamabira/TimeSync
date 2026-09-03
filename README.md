@@ -105,6 +105,12 @@ pnpm exec opennextjs-cloudflare build
 pnpm run preview
 ```
 
+## 回答保存の上限
+
+イベント単位の保存上限は、参加者 `100` 人、slot `2,000` 件です。1 回の回答は既存どおり最大 `20` slot とし、`20 slot × 100 人 = 2,000 slot` になるようにしています。これはMVPの共有イベントで扱うデータ量を bounded に保ちつつ、通常の少人数グループには十分な余裕を持たせるためです。
+
+上記の値は `src/lib/limits.ts` の `MAX_EVENT_PARTICIPANTS` と `MAX_EVENT_SLOTS` に定義し、`drizzle/20260904120000_event_limits.sql` のSQLite triggerでも強制します。数値を変更するときは、TypeScript定数とmigration SQLのリテラルを同時に更新してください。`MAX_EVENT_SLOTS` は `MAX_RESPONSE_SLOTS (20) × MAX_EVENT_PARTICIPANTS (100)` と一致させます。
+
 ## Cloudflare デプロイ手順
 
 このプロジェクトは、OpenNext Cloudflare adapter を使って Next.js アプリを Cloudflare Workers にデプロイします。
@@ -157,17 +163,30 @@ pnpm run preview
 
 ワークフローは `wrangler.toml` を使うため、本番 Worker は `akimatch`、本番 D1 データベースは `akimatch_db` として扱われます。
 
-### 6. Cloudflare の濫用対策を設定する
+### 6. Cloudflare の濫用対策と Rate Limiting Rule
 
-Cloudflare の DDoS managed protection は有効化した状態で運用します。加えて、Cloudflare Dashboard で Rate Limiting Rule を作成します。
+#### リポジトリで確認できる範囲
 
-- 対象パスは `/` と `/e/*` の origin 到達リクエスト
-- 初期値は同一 IP から 1 分あたり 30-60 リクエスト超を目安にする
-- まずは `Log` で 24-48 時間確認し、その後 `Managed Challenge` または `Block` に変更する
-- mitigation duration は 10 分程度から始める
-- Cloudflare plan により method や header 条件が使えない場合は、path ベースの緩めの設定から始める
+- アプリ側は Server Actions の body size を `100kb` に制限し、回答は1件あたり最大 `20 slot`、イベントは最大 `100` 参加者・`2,000` slotです。
+- 参加者数とslot数のイベント単位上限は、D1 migrationのSQLite triggerでも強制します。
+- GitHub Actionsの `Check` job は、main向けのPull Requestとmainへのpushで `pnpm lint`、`pnpm test`、`pnpm build`、OpenNext Cloudflare build、`wrangler deploy --dry-run` を実行します。
+- D1 migrationの本番適用は自動ではなく、次の手動手順で行います。
 
-アプリ側では Server Actions の body size を `100kb` に下げ、イベント期間と回答スロット数にも上限を設けています。
+```bash
+pnpm wrangler d1 migrations apply akimatch_db --remote
+```
+
+#### Dashboardでの手動設定手順
+
+Cloudflare DashboardでRate Limiting Ruleを作成し、次を初期値の目安にします。
+
+- 対象パスは `/` と `/e/*` のorigin到達リクエスト
+- 同一IPから1分あたり30〜60リクエスト超を目安にする
+- まず `Log` で24〜48時間確認し、その後 `Managed Challenge` または `Block` に変更する
+- mitigation durationは10分程度から始める
+- Cloudflare planによりmethodやheader条件が使えない場合は、pathベースの緩めの設定から始める
+
+Dashboard上の `Block` / `Managed Challenge` の有効化状態はリポジトリから保証できず、本PRでは本番のRate Limiting設定を変更しません。
 
 ### 7. デプロイする
 
