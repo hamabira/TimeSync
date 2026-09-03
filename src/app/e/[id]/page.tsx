@@ -224,7 +224,10 @@ export default function EventPage() {
       .map((date) => createDefaultSlot(date));
 
     if (kept.length + additions.length < normalizedDateKeys.length) {
-      setNotice({ type: "error", message: "時間帯は20件以内で選択してください。" });
+      setNotice({
+        type: "error",
+        message: `時間帯は${MAX_RESPONSE_SLOTS.toLocaleString("ja-JP")}件以内で選択してください。`,
+      });
     }
 
     setTimeSlots([...kept, ...additions]);
@@ -232,7 +235,10 @@ export default function EventPage() {
 
   const addTimeSlot = (date: DateOnly) => {
     if (timeSlots.length >= MAX_RESPONSE_SLOTS) {
-      setNotice({ type: "error", message: "時間帯は20件以内で選択してください。" });
+      setNotice({
+        type: "error",
+        message: `時間帯は${MAX_RESPONSE_SLOTS.toLocaleString("ja-JP")}件以内で選択してください。`,
+      });
       return;
     }
 

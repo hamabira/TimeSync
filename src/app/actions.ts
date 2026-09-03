@@ -143,7 +143,9 @@ export async function submitResponse(
   }
 
   if (slots.length > MAX_RESPONSE_SLOTS) {
-    throw new Error("時間帯は20件以内で選択してください。");
+    throw new Error(
+      `時間帯は${MAX_RESPONSE_SLOTS.toLocaleString("ja-JP")}件以内で選択してください。`
+    );
   }
 
   const uniqueSlots = new Map<string, SubmitResponseInput>();

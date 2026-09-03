@@ -107,9 +107,9 @@ NEXT_PUBLIC_SITE_URL="https://your-public-origin.example" pnpm run preview
 
 ## 回答保存の上限
 
-イベント単位の保存上限は、参加者 `100` 人、slot `2,000` 件です。1 回の回答は既存どおり最大 `20` slot とし、`20 slot × 100 人 = 2,000 slot` になるようにしています。これはMVPの共有イベントで扱うデータ量を bounded に保ちつつ、通常の少人数グループには十分な余裕を持たせるためです。
+イベント単位の保存上限は、参加者 `100` 人、slot `2,000` 件です。1回の回答にあった固定 `20` slot 制限は撤廃し、そのイベントで残っている保存容量まで回答できます。アプリ側の1回答の絶対上限もイベント全体と同じ `2,000` slot とし、D1の総量制約を超える書き込みはtriggerで拒否します。
 
-上記の値は `src/lib/limits.ts` の `MAX_EVENT_PARTICIPANTS` と `MAX_EVENT_SLOTS` に定義し、`drizzle/20260904120000_event_limits.sql` のSQLite triggerでも強制します。数値を変更するときは、TypeScript定数とmigration SQLのリテラルを同時に更新してください。`MAX_EVENT_SLOTS` は `MAX_RESPONSE_SLOTS (20) × MAX_EVENT_PARTICIPANTS (100)` と一致させます。
+上記の値は `src/lib/limits.ts` の `MAX_EVENT_PARTICIPANTS`、`MAX_EVENT_SLOTS`、`MAX_RESPONSE_SLOTS` に定義し、イベント全体の値は `drizzle/20260904120000_event_limits.sql` のSQLite triggerでも強制します。数値を変更するときは、TypeScript定数とmigration SQLのリテラルを同時に更新してください。
 
 ## Cloudflare デプロイ手順
 
@@ -178,7 +178,7 @@ GitHub のリポジトリ設定で `Settings` → `Secrets and variables` → `A
 
 #### リポジトリで確認できる範囲
 
-- アプリ側は Server Actions の body size を `100kb` に制限し、回答は1件あたり最大 `20 slot`、イベントは最大 `100` 参加者・`2,000` slotです。
+- アプリ側は Server Actions の body size を `100kb` に制限し、固定20件の回答上限は設けず、イベントは最大 `100` 参加者・`2,000` slotです。
 - 参加者数とslot数のイベント単位上限は、D1 migrationのSQLite triggerでも強制します。
 - GitHub Actionsの `Check` job は、main向けのPull Requestとmainへのpushで `pnpm lint`、`pnpm test`、`pnpm build`、OpenNext Cloudflare build、`wrangler deploy --dry-run` を実行します。
 - D1 migrationの本番適用は自動ではなく、次の手動手順で行います。
