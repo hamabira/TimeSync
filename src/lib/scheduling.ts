@@ -58,8 +58,8 @@ export type TimeBandRow = {
   bestSegment: TimeBandSegment | null;
 };
 
-function getAttendeeKey(attendeeNames: string[]) {
-  return attendeeNames.join("、");
+function haveSameAttendees(left: string[], right: string[]) {
+  return left.length === right.length && left.every((name, index) => name === right[index]);
 }
 
 export function normalizeParticipantName(name: string) {
@@ -88,6 +88,24 @@ export function timeStringToMinutes(value: string) {
   }
 
   return hour * 60 + minute;
+}
+
+export function parseTimeRange(startTime: string, endTime: string) {
+  const startMinutes = timeStringToMinutes(startTime);
+  const parsedEndMinutes = timeStringToMinutes(endTime);
+
+  if (startMinutes === null || parsedEndMinutes === null) {
+    return null;
+  }
+
+  // 日付をまたぐ回答は扱わないため、開始後の 00:00 は同日末の 24:00 と解釈する。
+  const endMinutes = parsedEndMinutes === 0 && startMinutes > 0 ? 24 * 60 : parsedEndMinutes;
+
+  if (startMinutes >= endMinutes) {
+    return null;
+  }
+
+  return { startMinutes, endMinutes };
 }
 
 export function formatHourRange(startHour: number, endHour: number) {
@@ -192,7 +210,7 @@ function buildRowSegments(date: Date, cells: TimeBandCell[]): TimeBandSegment[] 
 
     if (
       current &&
-      getAttendeeKey(current.attendeeNames) === getAttendeeKey(cell.attendeeNames) &&
+      haveSameAttendees(current.attendeeNames, cell.attendeeNames) &&
       current.endHour === cell.hour
     ) {
       current = { ...current, endHour: cell.hour + 1 };
@@ -239,15 +257,16 @@ export function buildTimeBandRows(participants: ParticipantRecord[]): TimeBandRo
                 return false;
               }
 
-              const startMinutes = timeStringToMinutes(slot.startTime);
-              const endMinutes = timeStringToMinutes(slot.endTime);
+              const range = parseTimeRange(slot.startTime, slot.endTime);
 
-              if (startMinutes === null || endMinutes === null) {
+              if (!range) {
                 return false;
               }
 
               // その1時間にフルで参加できる場合だけカウントする(1時間単位集計)
-              return hour * 60 >= startMinutes && (hour + 1) * 60 <= endMinutes;
+              return (
+                hour * 60 >= range.startMinutes && (hour + 1) * 60 <= range.endMinutes
+              );
             })
           )
           .map((participant) => participant.name)
@@ -296,6 +315,6 @@ export function isCellWithinBand(row: TimeBandRow, hour: number, segment: TimeBa
     hour >= segment.startHour &&
     hour < segment.endHour &&
     cell.count === segment.count &&
-    getAttendeeKey(cell.attendeeNames) === getAttendeeKey(segment.attendeeNames)
+    haveSameAttendees(cell.attendeeNames, segment.attendeeNames)
   );
 }

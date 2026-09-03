@@ -38,6 +38,7 @@ import {
   getTimeBandKey,
   normalizeParticipantName,
   normalizeDateOnly,
+  parseTimeRange,
   type EventWithParticipants,
   type TimeBandSegment,
 } from "@/lib/scheduling";
@@ -271,6 +272,11 @@ export default function EventPage() {
       return;
     }
 
+    if (timeSlots.some((slot) => !parseTimeRange(slot.startTime, slot.endTime))) {
+      setNotice({ type: "error", message: "開始時刻は終了時刻より前にしてください。" });
+      return;
+    }
+
     if (!eventId) {
       setNotice({ type: "error", message: "イベントが見つかりません。" });
       return;
@@ -450,6 +456,7 @@ export default function EventPage() {
                   <Label className="text-base font-semibold text-slate-700">選択した日程</Label>
                   <p className="text-xs text-slate-500">
                     集計は1時間単位です。1時間にフルで参加できる時間帯だけがヒートマップに反映されます。
+                    終了時刻の00:00は日末として扱います。
                   </p>
                 </div>
                 {selectedDates.length === 0 ? (
@@ -495,7 +502,6 @@ export default function EventPage() {
                                   <Clock3 className="h-4 w-4 shrink-0 text-slate-400" />
                                   <Input
                                     type="time"
-                                    step={3600}
                                     value={slot.startTime}
                                     onChange={(event) =>
                                       updateTimeSlot(slot.id, "startTime", event.target.value)
@@ -505,7 +511,6 @@ export default function EventPage() {
                                   <span className="shrink-0 text-slate-500">〜</span>
                                   <Input
                                     type="time"
-                                    step={3600}
                                     value={slot.endTime}
                                     onChange={(event) =>
                                       updateTimeSlot(slot.id, "endTime", event.target.value)

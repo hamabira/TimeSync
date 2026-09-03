@@ -9,6 +9,7 @@ import {
   EventWithParticipants,
   getTokyoDateKey,
   normalizeParticipantName,
+  parseTimeRange,
   timeStringToMinutes,
 } from "@/lib/scheduling";
 
@@ -193,7 +194,7 @@ export async function submitResponse(
       throw new Error("時間帯の形式が正しくありません。");
     }
 
-    if (startMinutes >= endMinutes) {
+    if (!parseTimeRange(slot.startTime, slot.endTime)) {
       throw new Error("開始時刻は終了時刻より前にしてください。");
     }
 
