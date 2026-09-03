@@ -6,6 +6,12 @@ import test from "node:test";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 
+import { getEventParticipants, formatParticipantsWithSlots } from "../src/db/event.ts";
+import {
+  MAX_EVENT_PARTICIPANTS,
+  MAX_EVENT_SLOTS,
+  MAX_RESPONSE_SLOTS,
+} from "../src/lib/limits.ts";
 import * as schema from "../src/db/schema.ts";
 import { persistParticipantResponse } from "../src/db/response.ts";
 
@@ -15,6 +21,10 @@ const baseMigration = readFileSync(
 );
 const phase1Migration = readFileSync(
   new URL("../drizzle/20260903165745_ancient_leo.sql", import.meta.url),
+  "utf8"
+);
+const phase2Migration = readFileSync(
+  new URL("../drizzle/20260904120000_event_limits.sql", import.meta.url),
   "utf8"
 );
 
@@ -96,11 +106,14 @@ class LocalD1Database {
   }
 }
 
-function createDatabase({ applyPhase1 = true } = {}) {
+function createDatabase({ applyPhase1 = true, applyPhase2 = true } = {}) {
   const local = new LocalD1Database();
   local.database.exec(baseMigration);
   if (applyPhase1) {
     local.database.exec(phase1Migration);
+  }
+  if (applyPhase2) {
+    local.database.exec(phase2Migration);
   }
   return local;
 }
@@ -115,6 +128,58 @@ function seedEvent(local, id = eventId) {
 
 function createAppDb(local) {
   return drizzle(local, { schema });
+}
+
+function makeSlots(count, offset = 0) {
+  return Array.from({ length: count }, (_, index) => {
+    const slotOffset = offset + index;
+    const startHour = 6 + (slotOffset % 16);
+
+    return {
+      date: new Date(Date.UTC(2026, 7, 13 + (slotOffset % 10))),
+      startTime: `${String(startHour).padStart(2, "0")}:00`,
+      endTime: `${String(startHour + 1).padStart(2, "0")}:00`,
+    };
+  });
+}
+
+async function addParticipantResponses(db, count, slotsPerParticipant = 1) {
+  for (let index = 0; index < count; index += 1) {
+    await persistParticipantResponse(
+      db,
+      eventId,
+      `Participant ${String(index).padStart(3, "0")}`,
+      makeSlots(slotsPerParticipant, index)
+    );
+  }
+}
+
+function getParticipantCount(local) {
+  return Number(
+    local.database
+      .prepare("SELECT COUNT(*) AS count FROM participants WHERE event_id = ?")
+      .get(eventId).count
+  );
+}
+
+function getEventSlotCount(local) {
+  return Number(
+    local.database
+      .prepare(
+        "SELECT COUNT(*) AS count FROM time_slots " +
+          "WHERE participant_id IN (SELECT id FROM participants WHERE event_id = ?)"
+      )
+      .get(eventId).count
+  );
+}
+
+async function assertLimitRejected(operation, expectedMessage) {
+  await assert.rejects(operation, (error) => {
+    assert.ok(error instanceof Error);
+    assert.match(error.message, expectedMessage);
+    assert.doesNotMatch(error.message, /AKIMATCH_EVENT_/);
+    return true;
+  });
 }
 
 function responseFingerprint(rows) {
@@ -141,6 +206,13 @@ function explainDetails(local, query, parameters) {
     .all(...parameters)
     .map((row) => row.detail);
 }
+
+test("event limits are explicit and match the response-size design", () => {
+  assert.equal(MAX_EVENT_PARTICIPANTS, 100);
+  assert.equal(MAX_RESPONSE_SLOTS, 20);
+  assert.equal(MAX_EVENT_SLOTS, 2_000);
+  assert.equal(MAX_EVENT_PARTICIPANTS * MAX_RESPONSE_SLOTS, MAX_EVENT_SLOTS);
+});
 
 test("a response overwrite keeps the participant ID and replaces all slots", async () => {
   const local = createDatabase();
@@ -209,8 +281,227 @@ test("concurrent same-name submissions leave one complete response set", async (
   ]);
 });
 
+test("participant limit allows the boundary, rejects overflow, and permits same-name replacement", async () => {
+  const local = createDatabase();
+  seedEvent(local);
+  const db = createAppDb(local);
+
+  await persistParticipantResponse(db, eventId, "Alice", makeSlots(1, 100));
+  const aliceBefore = (await getParticipantRows(db)).find(
+    (participant) => participant.name === "Alice"
+  );
+  await addParticipantResponses(db, MAX_EVENT_PARTICIPANTS - 2);
+  assert.equal(getParticipantCount(local), MAX_EVENT_PARTICIPANTS - 1);
+  await persistParticipantResponse(db, eventId, "Boundary participant", makeSlots(1, 200));
+  assert.equal(getParticipantCount(local), MAX_EVENT_PARTICIPANTS);
+
+  await assertLimitRejected(
+    () =>
+      persistParticipantResponse(db, eventId, "A new participant", makeSlots(1, 200)),
+    /参加者数.*100人/
+  );
+  assert.equal(getParticipantCount(local), MAX_EVENT_PARTICIPANTS);
+  assert.equal(
+    (await getParticipantRows(db)).some((participant) => participant.name === "A new participant"),
+    false
+  );
+
+  const replacement = makeSlots(2, 300);
+  await persistParticipantResponse(db, eventId, "Alice", replacement);
+
+  const participants = await getParticipantRows(db);
+  const aliceAfter = participants.find((participant) => participant.name === "Alice");
+  assert.ok(aliceBefore);
+  assert.ok(aliceAfter);
+  assert.equal(aliceAfter.id, aliceBefore.id);
+  assert.equal(participants.length, MAX_EVENT_PARTICIPANTS);
+  assert.deepEqual(await getSlotsForParticipant(db, aliceAfter.id), responseFingerprint(replacement));
+});
+
+test("concurrent different-name submissions cannot pass the participant limit together", async () => {
+  const local = createDatabase();
+  seedEvent(local);
+  const db = createAppDb(local);
+
+  await addParticipantResponses(db, MAX_EVENT_PARTICIPANTS - 1);
+
+  const results = await Promise.allSettled([
+    persistParticipantResponse(db, eventId, "Parallel A", makeSlots(1, 400)),
+    persistParticipantResponse(db, eventId, "Parallel B", makeSlots(1, 401)),
+  ]);
+
+  assert.equal(results.filter((result) => result.status === "fulfilled").length, 1);
+  const rejected = results.find((result) => result.status === "rejected");
+  assert.ok(rejected);
+  assert.match(rejected.reason.message, /参加者数.*100人/);
+  assert.doesNotMatch(rejected.reason.message, /AKIMATCH_EVENT_/);
+  assert.equal(getParticipantCount(local), MAX_EVENT_PARTICIPANTS);
+});
+
+test("slot limit reaches exactly 2000, replaces at capacity, and rolls back an overflow", async () => {
+  const local = createDatabase();
+  seedEvent(local);
+  const db = createAppDb(local);
+
+  await persistParticipantResponse(db, eventId, "Alice", makeSlots(MAX_RESPONSE_SLOTS, 500));
+  await addParticipantResponses(db, MAX_EVENT_PARTICIPANTS - 2, MAX_RESPONSE_SLOTS);
+  assert.equal(getParticipantCount(local), MAX_EVENT_PARTICIPANTS - 1);
+  await persistParticipantResponse(db, eventId, "Boundary participant", makeSlots(19, 550));
+  assert.equal(getParticipantCount(local), MAX_EVENT_PARTICIPANTS);
+  assert.equal(getEventSlotCount(local), MAX_EVENT_SLOTS - 1);
+
+  await persistParticipantResponse(
+    db,
+    eventId,
+    "Boundary participant",
+    makeSlots(MAX_RESPONSE_SLOTS, 575)
+  );
+  assert.equal(getEventSlotCount(local), MAX_EVENT_SLOTS);
+
+  const [aliceBefore] = (await getParticipantRows(db)).filter(
+    (participant) => participant.name === "Alice"
+  );
+  const replacement = makeSlots(MAX_RESPONSE_SLOTS, 600);
+  await persistParticipantResponse(db, eventId, "Alice", replacement);
+
+  const [aliceAtCapacity] = (await getParticipantRows(db)).filter(
+    (participant) => participant.name === "Alice"
+  );
+  assert.ok(aliceBefore);
+  assert.equal(aliceAtCapacity.id, aliceBefore.id);
+  assert.equal(getEventSlotCount(local), MAX_EVENT_SLOTS);
+  assert.deepEqual(
+    await getSlotsForParticipant(db, aliceAtCapacity.id),
+    responseFingerprint(replacement)
+  );
+
+  const overflowAttempt = makeSlots(MAX_RESPONSE_SLOTS + 1, 700);
+  await assertLimitRejected(
+    () => persistParticipantResponse(db, eventId, "Alice", overflowAttempt),
+    /回答枠.*2,000件/
+  );
+
+  const [aliceAfterRollback] = (await getParticipantRows(db)).filter(
+    (participant) => participant.name === "Alice"
+  );
+  assert.equal(aliceAfterRollback.id, aliceBefore.id);
+  assert.equal(getParticipantCount(local), MAX_EVENT_PARTICIPANTS);
+  assert.equal(getEventSlotCount(local), MAX_EVENT_SLOTS);
+  assert.deepEqual(
+    await getSlotsForParticipant(db, aliceAfterRollback.id),
+    responseFingerprint(replacement)
+  );
+});
+
+test("participant slot formatting groups rows in one pass", () => {
+  const formatted = formatParticipantsWithSlots(
+    [
+      { id: "participant-a", name: "Alice" },
+      { id: "participant-b", name: "Bob" },
+    ],
+    [
+      {
+        participantId: "participant-b",
+        date: new Date("2026-08-14T00:00:00.000Z"),
+        startTime: "11:00",
+        endTime: "12:00",
+      },
+      {
+        participantId: "participant-a",
+        date: new Date("2026-08-13T00:00:00.000Z"),
+        startTime: "09:00",
+        endTime: "10:00",
+      },
+      {
+        participantId: "legacy-unknown",
+        date: new Date("2026-08-15T00:00:00.000Z"),
+        startTime: "13:00",
+        endTime: "14:00",
+      },
+    ]
+  );
+
+  assert.deepEqual(formatted, [
+    {
+      id: "participant-a",
+      name: "Alice",
+      timeSlots: [
+        {
+          date: new Date("2026-08-13T00:00:00.000Z"),
+          startTime: "09:00",
+          endTime: "10:00",
+        },
+      ],
+    },
+    {
+      id: "participant-b",
+      name: "Bob",
+      timeSlots: [
+        {
+          date: new Date("2026-08-14T00:00:00.000Z"),
+          startTime: "11:00",
+          endTime: "12:00",
+        },
+      ],
+    },
+  ]);
+});
+
+test("event reads are bounded and deterministic for legacy over-limit data", async () => {
+  const local = createDatabase({ applyPhase2: false });
+  seedEvent(local);
+  const db = createAppDb(local);
+  const insertParticipant = local.database.prepare(
+    "INSERT INTO participants (id, event_id, name) VALUES (?, ?, ?)"
+  );
+  const insertSlot = local.database.prepare(
+    "INSERT INTO time_slots (id, participant_id, date, start_time, end_time) VALUES (?, ?, ?, ?, ?)"
+  );
+
+  for (let participantIndex = 0; participantIndex < MAX_EVENT_PARTICIPANTS + 5; participantIndex += 1) {
+    const participantId = `legacy-participant-${String(participantIndex).padStart(3, "0")}`;
+    insertParticipant.run(
+      participantId,
+      eventId,
+      `Legacy ${String(participantIndex).padStart(3, "0")}`
+    );
+
+    for (let slotIndex = 0; slotIndex < MAX_RESPONSE_SLOTS + 5; slotIndex += 1) {
+      insertSlot.run(
+        `${participantId}-slot-${String(slotIndex).padStart(2, "0")}`,
+        participantId,
+        1780000000 + slotIndex,
+        "09:00",
+        "10:00"
+      );
+    }
+  }
+
+  const participants = await getEventParticipants(db, eventId);
+  assert.equal(participants.length, MAX_EVENT_PARTICIPANTS);
+  assert.equal(participants[0].name, "Legacy 000");
+  assert.equal(participants.at(-1).name, "Legacy 099");
+  assert.equal(
+    participants.reduce((total, participant) => total + participant.timeSlots.length, 0),
+    MAX_EVENT_SLOTS
+  );
+  assert.deepEqual(
+    participants.slice(0, MAX_EVENT_PARTICIPANTS - 20).map((participant) => participant.timeSlots.length),
+    Array(MAX_EVENT_PARTICIPANTS - 20).fill(MAX_RESPONSE_SLOTS + 5)
+  );
+  assert.ok(
+    participants.slice(MAX_EVENT_PARTICIPANTS - 20).every((participant) => participant.timeSlots.length === 0)
+  );
+
+  const repeatedRead = await getEventParticipants(db, eventId);
+  assert.deepEqual(
+    repeatedRead.map((participant) => [participant.id, participant.timeSlots.length]),
+    participants.map((participant) => [participant.id, participant.timeSlots.length])
+  );
+});
+
 test("the phase 1 migration deterministically keeps only the max-rowid participant slots", () => {
-  const local = createDatabase({ applyPhase1: false });
+  const local = createDatabase({ applyPhase1: false, applyPhase2: false });
   seedEvent(local);
   seedEvent(local, secondEventId);
 

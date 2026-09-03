@@ -1,7 +1,11 @@
 export const SCHEDULE_START_HOUR = 0;
 export const SCHEDULE_END_HOUR = 24;
 
-export const MAX_RESPONSE_SLOTS = 20;
+export {
+  MAX_EVENT_PARTICIPANTS,
+  MAX_EVENT_SLOTS,
+  MAX_RESPONSE_SLOTS,
+} from "./limits.ts";
 
 export const SCHEDULE_HOURS = Array.from(
   { length: SCHEDULE_END_HOUR - SCHEDULE_START_HOUR },

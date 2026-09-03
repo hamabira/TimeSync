@@ -15,6 +15,13 @@
       "when": 1788454665916,
       "tag": "20260903165745_ancient_leo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788456217238,
+      "tag": "20260904120000_event_limits",
+      "breakpoints": true
     }
   ]
 }
