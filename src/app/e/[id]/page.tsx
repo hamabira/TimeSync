@@ -200,7 +200,10 @@ export default function EventPage() {
     setExpandedSelectedBand(false);
 
     const bandKey = getTimeBandKey(band.date, band.startHour);
-    const element = document.getElementById(`time-band-${band.date}`);
+    const elementId = window.matchMedia("(min-width: 1024px)").matches
+      ? `time-band-desktop-${band.date}`
+      : `time-band-mobile-${band.date}-${band.startHour}`;
+    const element = document.getElementById(elementId);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
@@ -777,7 +780,12 @@ export default function EventPage() {
           <CardHeader className="border-b-2 border-slate-200 bg-slate-50/70 pb-4">
             <CardTitle className="text-xl font-bold text-slate-800">みんなの回答状況</CardTitle>
             <CardDescription>
-              横に流れる時間帯の帯で、重なりやすい時間がすぐ分かります。
+              <span className="lg:hidden">
+                時刻を縦に並べた帯で、重なりやすい時間がすぐ分かります。
+              </span>
+              <span className="hidden lg:inline">
+                横に流れる時間帯の帯で、重なりやすい時間がすぐ分かります。
+              </span>
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
