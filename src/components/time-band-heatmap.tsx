@@ -103,6 +103,7 @@ function MobileTimeBandHeatmap({
                 return (
                   <button
                     key={row.date}
+                    id={`time-band-mobile-${row.date}-${cell.hour}`}
                     type="button"
                     onClick={() => onSelectBand(getBandSegmentAtHour(row, cell.hour))}
                     className={cn(
@@ -196,7 +197,7 @@ function DesktopTimeBandHeatmap({
             return (
               <div
                 key={row.date}
-                id={`time-band-${row.date}`}
+                id={`time-band-desktop-${row.date}`}
                 className="grid gap-1"
                 style={{ gridTemplateColumns: heatmapGridColumns }}
               >

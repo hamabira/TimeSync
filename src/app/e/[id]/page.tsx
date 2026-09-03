@@ -200,7 +200,10 @@ export default function EventPage() {
     setExpandedSelectedBand(false);
 
     const bandKey = getTimeBandKey(band.date, band.startHour);
-    const element = document.getElementById(`time-band-${band.date}`);
+    const elementId = window.matchMedia("(min-width: 1024px)").matches
+      ? `time-band-desktop-${band.date}`
+      : `time-band-mobile-${band.date}-${band.startHour}`;
+    const element = document.getElementById(elementId);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
