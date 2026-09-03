@@ -16,6 +16,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+
 jobs:
   check:
     name: Check
