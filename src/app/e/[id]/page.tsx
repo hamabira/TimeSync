@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
@@ -38,6 +38,7 @@ import {
   getTimeBandKey,
   normalizeParticipantName,
   normalizeDateOnly,
+  parseTimeRange,
   type EventWithParticipants,
   type TimeBandSegment,
 } from "@/lib/scheduling";
@@ -58,6 +59,8 @@ type NoticeState =
   | null;
 
 type CopyState = "idle" | "copied" | "error";
+
+type LoadState = "loading" | "loaded" | "not-found" | "error";
 
 const MAX_RESPONSE_SLOTS = 20;
 
@@ -90,11 +93,11 @@ function createDefaultSlot(date: Date): TimeSlotDraft {
 
 export default function EventPage() {
   const params = useParams();
-  const eventId = params.id as string;
+  const eventId = typeof params.id === "string" ? params.id : null;
 
   const [eventData, setEventData] = useState<EventWithParticipants["event"] | null>(null);
   const [participantsData, setParticipantsData] = useState<EventWithParticipants["participants"]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadState, setLoadState] = useState<LoadState>("loading");
   const [userName, setUserName] = useState("");
   const [timeSlots, setTimeSlots] = useState<TimeSlotDraft[]>([]);
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
@@ -106,26 +109,37 @@ export default function EventPage() {
   const [bandCopyState, setBandCopyState] = useState<CopyState>("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
+  const loadEvent = useCallback(() => {
     if (!eventId) {
       return;
     }
 
     getEventWithParticipants(eventId)
       .then((data) => {
-        if (data) {
-          const hydrated = hydrateEventData(data);
-          setEventData(hydrated.event);
-          setParticipantsData(hydrated.participants);
+        if (!data) {
+          setLoadState("not-found");
+          return;
         }
 
-        setIsLoading(false);
+        const hydrated = hydrateEventData(data);
+        setEventData(hydrated.event);
+        setParticipantsData(hydrated.participants);
+        setLoadState("loaded");
       })
       .catch((error) => {
         console.error(error);
-        setIsLoading(false);
+        setLoadState("error");
       });
   }, [eventId]);
+
+  useEffect(() => {
+    loadEvent();
+  }, [loadEvent]);
+
+  const retryLoadEvent = () => {
+    setLoadState("loading");
+    loadEvent();
+  };
 
   const selectedDates = useMemo(() => {
     const unique = new Map<number, Date>();
@@ -258,6 +272,16 @@ export default function EventPage() {
       return;
     }
 
+    if (timeSlots.some((slot) => !parseTimeRange(slot.startTime, slot.endTime))) {
+      setNotice({ type: "error", message: "開始時刻は終了時刻より前にしてください。" });
+      return;
+    }
+
+    if (!eventId) {
+      setNotice({ type: "error", message: "イベントが見つかりません。" });
+      return;
+    }
+
     setIsSubmitting(true);
     setNotice(null);
 
@@ -272,6 +296,9 @@ export default function EventPage() {
 
       setUserName("");
       setTimeSlots([]);
+      // 再集計後は選択中の帯が古い人数・参加者を指し得るため解除する
+      setSelectedBand(null);
+      setExpandedSelectedBand(false);
       setNotice({
         type: "success",
         message: `${normalizedName}さんの希望日程を保存しました。`,
@@ -295,10 +322,29 @@ export default function EventPage() {
     setExpandedSelectedBand((current) => !current);
   };
 
-  if (isLoading) {
+  if (!eventId || loadState === "not-found") {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <p className="text-slate-500">イベントが見つかりません。</p>
+      </div>
+    );
+  }
+
+  if (loadState === "loading") {
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <p className="animate-pulse font-medium text-slate-500">イベントを読み込み中...</p>
+      </div>
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-slate-500">イベントの読み込みに失敗しました。通信環境を確認してください。</p>
+        <Button variant="outline" onClick={retryLoadEvent}>
+          再読み込み
+        </Button>
       </div>
     );
   }
@@ -406,7 +452,13 @@ export default function EventPage() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-base font-semibold text-slate-700">選択した日程</Label>
+                <div className="space-y-1">
+                  <Label className="text-base font-semibold text-slate-700">選択した日程</Label>
+                  <p className="text-xs text-slate-500">
+                    集計は1時間単位です。1時間にフルで参加できる時間帯だけがヒートマップに反映されます。
+                    終了時刻の00:00は日末として扱います。
+                  </p>
+                </div>
                 {selectedDates.length === 0 ? (
                   <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-400">
                     左のカレンダーから日付を選んでください
