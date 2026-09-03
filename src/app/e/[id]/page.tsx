@@ -36,6 +36,7 @@ import {
   formatHourRange,
   formatParticipantLine,
   getTimeBandKey,
+  MAX_RESPONSE_SLOTS,
   normalizeParticipantName,
   normalizeDateOnly,
   parseTimeRange,
@@ -62,8 +63,6 @@ type CopyState = "idle" | "copied" | "error";
 
 type LoadState = "loading" | "loaded" | "not-found" | "error";
 
-const MAX_RESPONSE_SLOTS = 20;
-
 function hydrateEventData(data: EventWithParticipants) {
   return {
     event: {
@@ -89,6 +88,46 @@ function createDefaultSlot(date: Date): TimeSlotDraft {
     startTime: "19:00",
     endTime: "21:00",
   };
+}
+
+type AttendeeChipsProps = {
+  names: string[];
+  expanded: boolean;
+  onToggle: () => void;
+};
+
+function AttendeeChips({ names, expanded, onToggle }: AttendeeChipsProps) {
+  const preview = names.slice(0, 3);
+  const overflow = names.length - preview.length;
+  const visibleNames = expanded ? names : preview;
+
+  return (
+    <div className="space-y-2">
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">参加者</div>
+      <div className="flex flex-wrap gap-2">
+        {visibleNames.map((name) => (
+          <span
+            key={name}
+            className="inline-flex items-center rounded-full border-2 border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
+          >
+            {name}
+          </span>
+        ))}
+        {overflow > 0 ? (
+          <button
+            type="button"
+            className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggle();
+            }}
+          >
+            {expanded ? "閉じる" : `+${overflow}人`}
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 export default function EventPage() {
@@ -156,10 +195,6 @@ export default function EventPage() {
 
   const responseCount = participantsData.length;
   const selectedBandKey = selectedBand ? getTimeBandKey(selectedBand.date, selectedBand.startHour) : null;
-  const selectedBandAttendeePreview = selectedBand ? selectedBand.attendeeNames.slice(0, 3) : [];
-  const selectedBandAttendeeOverflow = selectedBand
-    ? selectedBand.attendeeNames.length - selectedBandAttendeePreview.length
-    : 0;
 
   const openBand = (band: TimeBandSegment | null) => {
     if (!band) {
@@ -602,8 +637,6 @@ export default function EventPage() {
               <div className="space-y-3">
                 {candidates.map((candidate, index) => {
                   const candidateKey = `${candidate.date.getTime()}-${candidate.startHour}`;
-                  const attendeePreview = candidate.attendeeNames.slice(0, 3);
-                  const attendeeOverflow = candidate.attendeeNames.length - attendeePreview.length;
                   const isExpanded = expandedCandidateKey === candidateKey;
 
                   return (
@@ -654,44 +687,12 @@ export default function EventPage() {
                         <Clock3 className="h-4 w-4" />
                         {formatHourRange(candidate.startHour, candidate.endHour)}
                       </div>
-                      <div className="mt-3 space-y-2">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                          参加者
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {(isExpanded ? candidate.attendeeNames : attendeePreview).map((name) => (
-                            <span
-                              key={name}
-                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
-                            >
-                              {name}
-                            </span>
-                          ))}
-                          {attendeeOverflow > 0 && !isExpanded ? (
-                            <button
-                              type="button"
-                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                toggleCandidateExpansion(candidateKey);
-                              }}
-                            >
-                              +{attendeeOverflow}人
-                            </button>
-                          ) : null}
-                          {isExpanded && attendeeOverflow > 0 ? (
-                            <button
-                              type="button"
-                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                toggleCandidateExpansion(candidateKey);
-                              }}
-                            >
-                              閉じる
-                            </button>
-                          ) : null}
-                        </div>
+                      <div className="mt-3">
+                        <AttendeeChips
+                          names={candidate.attendeeNames}
+                          expanded={isExpanded}
+                          onToggle={() => toggleCandidateExpansion(candidateKey)}
+                        />
                       </div>
                     </div>
                   );
@@ -711,40 +712,12 @@ export default function EventPage() {
                       <div className="mt-1 text-base font-bold text-slate-900">
                         {formatBandSummary(selectedBand)}
                       </div>
-                      <div className="mt-3 space-y-2">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                          参加者
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {(expandedSelectedBand ? selectedBand.attendeeNames : selectedBandAttendeePreview).map(
-                            (name) => (
-                              <span
-                                key={name}
-                                className="inline-flex items-center rounded-full border-2 border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
-                              >
-                                {name}
-                              </span>
-                            )
-                          )}
-                          {selectedBandAttendeeOverflow > 0 && !expandedSelectedBand ? (
-                            <button
-                              type="button"
-                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
-                              onClick={toggleSelectedBandExpansion}
-                            >
-                              +{selectedBandAttendeeOverflow}人
-                            </button>
-                          ) : null}
-                          {selectedBandAttendeeOverflow > 0 && expandedSelectedBand ? (
-                            <button
-                              type="button"
-                              className="inline-flex items-center rounded-full border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-blue-300 hover:text-blue-700"
-                              onClick={toggleSelectedBandExpansion}
-                            >
-                              閉じる
-                            </button>
-                          ) : null}
-                        </div>
+                      <div className="mt-3">
+                        <AttendeeChips
+                          names={selectedBand.attendeeNames}
+                          expanded={expandedSelectedBand}
+                          onToggle={toggleSelectedBandExpansion}
+                        />
                       </div>
                     </>
                   ) : (

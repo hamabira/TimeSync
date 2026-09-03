@@ -8,6 +8,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
   EventWithParticipants,
   getTokyoDateKey,
+  MAX_RESPONSE_SLOTS,
   normalizeParticipantName,
   parseTimeRange,
   timeStringToMinutes,
@@ -27,7 +28,6 @@ type SubmitResponseInput = {
 };
 
 const MAX_EVENT_RANGE_DAYS = 93;
-const MAX_RESPONSE_SLOTS = 20;
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
