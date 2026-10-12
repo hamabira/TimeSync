@@ -1,0 +1,10 @@
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Content-Type: application/javascript; charset=utf-8
+  X-Content-Type-Options: nosniff
+
+/offline.html
+  Cache-Control: no-cache
+
+/offline
+  Cache-Control: no-cache

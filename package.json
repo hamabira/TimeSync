@@ -7,7 +7,7 @@
     "db:migrate:local": "pnpm exec wrangler d1 migrations apply akimatch_db --local",
     "dev": "pnpm run db:migrate:local && next dev",
     "dev:log": "mkdir -p logs && pnpm run db:migrate:local && next dev 2>&1 | tee logs/dev.log",
-    "build": "next build --webpack",
+    "build": "next build --webpack && node scripts/generate-service-worker.mjs",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
