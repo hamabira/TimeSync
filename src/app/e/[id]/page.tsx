@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -15,7 +15,11 @@ import {
 import { CalendarAvailabilityHeatmap } from "@/components/calendar-availability-heatmap";
 import { TimeBandHeatmap } from "@/components/time-band-heatmap";
 import { getEventWithParticipants, submitResponse } from "@/app/actions";
-import { CandidateSummaryPanel } from "./components/candidate-summary-panel";
+import {
+  BestCandidateSummary,
+  CandidateSummaryPanel,
+  SelectedBandDetails,
+} from "./components/candidate-summary-panel";
 import { EventOverviewHeader } from "./components/event-overview-header";
 import { ResponseForm } from "./components/response-form";
 import type { CopyState, NoticeState, TimeSlotDraft, TimeSlotField } from "./types";
@@ -30,6 +34,7 @@ import {
   formatBandSummary,
   formatParticipantLine,
   getTimeBandKey,
+  getBandSegmentAtHour,
   MAX_RESPONSE_SLOTS,
   normalizeParticipantName,
   parseTimeRange,
@@ -68,10 +73,14 @@ export default function EventPage() {
   const [userName, setUserName] = useState("");
   const [timeSlots, setTimeSlots] = useState<TimeSlotDraft[]>([]);
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
-  const [selectedBand, setSelectedBand] = useState<TimeBandSegment | null>(null);
+  const [selectedBandTarget, setSelectedBand] = useState<Pick<TimeBandSegment, "date" | "startHour"> | null>(null);
   const [expandedSelectedBand, setExpandedSelectedBand] = useState(false);
   const [expandedCandidateKey, setExpandedCandidateKey] = useState<string | null>(null);
   const [notice, setNotice] = useState<NoticeState>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
+  const [slotErrors, setSlotErrors] = useState<Record<string, string>>({});
+  const [hasSavedResponse, setHasSavedResponse] = useState(false);
   const [copyState, setCopyState] = useState<CopyState>("idle");
   const [bandCopyState, setBandCopyState] = useState<CopyState>("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,26 +128,60 @@ export default function EventPage() {
 
   const rows = useMemo(() => buildTimeBandRows(participantsData), [participantsData]);
   const candidates = useMemo(() => buildTopSegments(rows).slice(0, 3), [rows]);
+  // Resolve selected details from current rows, including concurrent replies in a refresh.
+  const selectedBand = useMemo(() => {
+    if (!selectedBandTarget) return null;
+    const row = rows.find((entry) => entry.date === selectedBandTarget.date);
+    return row ? getBandSegmentAtHour(row, selectedBandTarget.startHour) : null;
+  }, [rows, selectedBandTarget]);
 
   const responseCount = participantsData.length;
+  const normalizedName = normalizeParticipantName(userName);
+  const existingParticipant = normalizedName
+    ? participantsData.find((participant) => participant.name === normalizedName) ?? null
+    : null;
   const openBand = (band: TimeBandSegment | null) => {
     if (!band) {
       return;
     }
 
-    setSelectedBand(band);
+    setSelectedBand({ date: band.date, startHour: band.startHour });
     setExpandedSelectedBand(false);
+    setBandCopyState("idle");
 
     const bandKey = getTimeBandKey(band.date, band.startHour);
-    const elementId = window.matchMedia("(min-width: 1024px)").matches
-      ? `time-band-desktop-${band.date}`
-      : `time-band-mobile-${band.date}-${band.startHour}`;
-    const element = document.getElementById(elementId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-
     setHighlightedKey(bandKey);
+    window.requestAnimationFrame(() => {
+      document.getElementById("selected-band-details")?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "start",
+      });
+
+      if (window.matchMedia("(max-width: 1023px)").matches) {
+        const scroller = document.querySelector<HTMLElement>("[data-testid='mobile-time-band-scroller']");
+        const cell = document.getElementById(`time-band-mobile-${band.date}-${band.startHour}`);
+        if (scroller && cell) {
+          const scrollerRect = scroller.getBoundingClientRect();
+          const cellRect = cell.getBoundingClientRect();
+          const visibleTop = scrollerRect.top + 68;
+          const visibleLeft = scrollerRect.left + 68;
+          const top = scroller.scrollTop + cellRect.top - visibleTop;
+          let left = scroller.scrollLeft;
+
+          if (cellRect.left < visibleLeft) {
+            left += cellRect.left - visibleLeft;
+          } else if (cellRect.right > scrollerRect.right) {
+            left += cellRect.right - scrollerRect.right;
+          }
+
+          scroller.scrollTo({
+            top: Math.max(0, top),
+            left: Math.max(0, left),
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          });
+        }
+      }
+    });
     window.setTimeout(() => setHighlightedKey(null), 2000);
   };
 
@@ -155,15 +198,22 @@ export default function EventPage() {
       .filter((date) => !keptDates.has(date))
       .slice(0, Math.max(0, MAX_RESPONSE_SLOTS - kept.length))
       .map((date) => createDefaultSlot(date));
+    const nextSlots = [...kept, ...additions];
+    const retainedSlotIds = new Set(nextSlots.map((slot) => slot.id));
+    setSlotErrors((previous) =>
+      Object.fromEntries(Object.entries(previous).filter(([slotId]) => retainedSlotIds.has(slotId)))
+    );
 
-    if (kept.length + additions.length < normalizedDateKeys.length) {
+    if (nextSlots.length < normalizedDateKeys.length) {
       setNotice({
         type: "error",
         message: `時間帯は${MAX_RESPONSE_SLOTS.toLocaleString("ja-JP")}件以内で選択してください。`,
       });
+    } else {
+      setNotice(null);
     }
 
-    setTimeSlots([...kept, ...additions]);
+    setTimeSlots(nextSlots);
   };
 
   const addTimeSlot = (date: DateOnly) => {
@@ -175,6 +225,7 @@ export default function EventPage() {
       return;
     }
 
+    setNotice(null);
     setTimeSlots((previous) => [...previous, createDefaultSlot(date)]);
   };
 
@@ -182,10 +233,46 @@ export default function EventPage() {
     setTimeSlots((previous) =>
       previous.map((slot) => (slot.id === id ? { ...slot, [field]: value } : slot))
     );
+    setSlotErrors((previous) => {
+      if (!previous[id]) {
+        return previous;
+      }
+
+      const next = { ...previous };
+      delete next[id];
+      return next;
+    });
+    setNotice(null);
   };
 
   const removeTimeSlot = (id: string) => {
     setTimeSlots((previous) => previous.filter((slot) => slot.id !== id));
+    setSlotErrors((previous) => {
+      if (!previous[id]) {
+        return previous;
+      }
+
+      const next = { ...previous };
+      delete next[id];
+      return next;
+    });
+    setNotice(null);
+  };
+
+  const loadPreviousResponse = () => {
+    if (!existingParticipant) {
+      return;
+    }
+
+    setTimeSlots(
+      existingParticipant.timeSlots.map((slot) => ({ ...slot, id: crypto.randomUUID() }))
+    );
+    setSlotErrors({});
+    setHasSavedResponse(false);
+    setNotice({
+      type: "success",
+      message: "前回の回答を読み込みました。必要な変更を加えてから提出してください。",
+    });
   };
 
   const handleCopyLink = async () => {
@@ -225,13 +312,23 @@ export default function EventPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (isSubmitting) {
+    if (submittingRef.current) {
       return;
     }
 
     const normalizedName = normalizeParticipantName(userName);
 
+    const invalidSlots = timeSlots.filter(
+      (slot) => !parseTimeRange(slot.startTime, slot.endTime)
+    );
+    setSlotErrors(
+      Object.fromEntries(
+        invalidSlots.map((slot) => [slot.id, "終了時刻は開始時刻より後にしてください。"])
+      )
+    );
+
     if (!normalizedName) {
+      setNameError("お名前を入力してください。");
       setNotice({ type: "error", message: "お名前を入力してください。" });
       return;
     }
@@ -241,8 +338,8 @@ export default function EventPage() {
       return;
     }
 
-    if (timeSlots.some((slot) => !parseTimeRange(slot.startTime, slot.endTime))) {
-      setNotice({ type: "error", message: "開始時刻は終了時刻より前にしてください。" });
+    if (invalidSlots.length > 0) {
+      setNotice({ type: "error", message: "赤く表示した時間帯を確認してください。入力内容は残っています。" });
       return;
     }
 
@@ -251,39 +348,68 @@ export default function EventPage() {
       return;
     }
 
+    submittingRef.current = true;
     setIsSubmitting(true);
+    setNameError(null);
     setNotice(null);
 
     try {
-      const result = await submitResponse(eventId, normalizedName, timeSlots);
+      const submittedSlots = timeSlots.map(({ date, startTime, endTime }) => ({
+        date,
+        startTime,
+        endTime,
+      }));
+      const result = await submitResponse(eventId, normalizedName, submittedSlots);
 
       if (!result.ok) {
         setNotice({ type: "error", message: result.error });
         return;
       }
 
-      const data = await getEventWithParticipants(eventId);
-      if (data) {
-        const hydrated = hydrateEventData(data);
-        setParticipantsData(hydrated.participants);
-      }
-
-      setUserName("");
-      setTimeSlots([]);
-      // 再集計後は選択中の帯が古い人数・参加者を指し得るため解除する
+      setHasSavedResponse(true);
+      const submittedParticipant = {
+        id: existingParticipant?.id ?? crypto.randomUUID(),
+        name: normalizedName,
+        timeSlots: submittedSlots,
+      };
+      setParticipantsData((previous) => [
+        ...previous.filter((participant) => participant.name !== normalizedName),
+        submittedParticipant,
+      ]);
       setSelectedBand(null);
       setExpandedSelectedBand(false);
+      setBandCopyState("idle");
       setNotice({
         type: "success",
-        message: `${normalizedName}さんの希望日程を保存しました。`,
+        message: `${normalizedName}さんの回答を保存しました。入力内容はこのまま残っています。`,
       });
+
+      try {
+        const data = await getEventWithParticipants(eventId);
+        if (data) {
+          const hydrated = hydrateEventData(data);
+          setParticipantsData(hydrated.participants);
+        } else {
+          setNotice({
+            type: "success",
+            message: `${normalizedName}さんの回答は保存済みです。最新の回答状況を読み込めませんでした。時間をおいて再読み込みしてください。`,
+          });
+        }
+      } catch (refreshError) {
+        console.error(refreshError);
+        setNotice({
+          type: "success",
+          message: `${normalizedName}さんの回答は保存済みです。最新の回答状況を読み込めませんでした。時間をおいて再読み込みしてください。`,
+        });
+      }
     } catch (error) {
       console.error(error);
       setNotice({
         type: "error",
-        message: error instanceof Error ? error.message : "エラーが発生しました。",
+        message: "回答を保存できませんでした。入力内容は残っています。通信を確認してもう一度お試しください。",
       });
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   };
@@ -335,7 +461,7 @@ export default function EventPage() {
   const eventEndDate = dateOnlyToDate(eventData.endDate);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 py-6">
+    <div className="mx-auto w-full max-w-7xl space-y-5 py-2 lg:space-y-6 lg:py-4">
       <EventOverviewHeader
         name={eventData.name}
         description={eventData.description}
@@ -346,7 +472,32 @@ export default function EventPage() {
         onCopyLink={handleCopyLink}
       />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
+      <BestCandidateSummary
+        candidate={candidates[0] ?? null}
+        participantCount={responseCount}
+        onView={() => {
+          if (candidates[0]) {
+            openBand(candidates[0]);
+          }
+        }}
+      />
+
+      <nav aria-label="ページ内移動" className="grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-white p-1.5 sm:w-fit">
+        <a
+          href="#answer-section"
+          className="inline-flex min-h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        >
+          あなたの回答
+        </a>
+        <a
+          href="#results-section"
+          className="inline-flex min-h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-blue-800 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        >
+          みんなの結果 <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs">{responseCount}</span>
+        </a>
+      </nav>
+
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6">
         <ResponseForm
           eventStartDate={eventStartDate}
           eventEndDate={eventEndDate}
@@ -355,45 +506,56 @@ export default function EventPage() {
           timeSlots={timeSlots}
           userName={userName}
           notice={notice}
+          nameError={nameError}
+          slotErrors={slotErrors}
+          existingParticipant={existingParticipant}
+          hasSavedResponse={hasSavedResponse}
           isSubmitting={isSubmitting}
           onSubmit={handleSubmit}
           onSelectDates={handleSelectDates}
           onAddTimeSlot={addTimeSlot}
           onUpdateTimeSlot={updateTimeSlot}
           onRemoveTimeSlot={removeTimeSlot}
-          onUserNameChange={setUserName}
+          onUserNameChange={(value) => {
+            setUserName(value);
+            setNameError(null);
+            setNotice(null);
+            setHasSavedResponse(false);
+          }}
+          onLoadPreviousResponse={loadPreviousResponse}
         />
 
         <CandidateSummaryPanel
           candidates={candidates}
+          participantCount={responseCount}
           selectedBand={selectedBand}
-          expandedSelectedBand={expandedSelectedBand}
           expandedCandidateKey={expandedCandidateKey}
-          bandCopyState={bandCopyState}
           onOpenBand={openBand}
           onToggleCandidateExpansion={toggleCandidateExpansion}
-          onToggleSelectedBandExpansion={toggleSelectedBandExpansion}
-          onCopyBandSummary={handleCopyBandSummary}
-          onClearSelectedBand={() => {
-            setSelectedBand(null);
-            setExpandedSelectedBand(false);
-          }}
         />
       </div>
 
-      <Card className="shadow-sm ring-2 ring-slate-200">
-        <CardHeader className="border-b-2 border-slate-200 bg-slate-50/70 pb-4">
-          <CardTitle className="text-xl font-bold text-slate-800">みんなの回答状況</CardTitle>
+      <Card id="results-section" className="scroll-mt-24 shadow-sm ring-1 ring-slate-200">
+        <CardHeader className="border-b border-slate-200 bg-slate-50/70 pb-4">
+          <CardTitle className="text-xl font-bold text-slate-900">空き時間の重なり</CardTitle>
           <CardDescription>
-            <span className="lg:hidden">
-              時刻を縦に並べた帯で、重なりやすい時間がすぐ分かります。
-            </span>
-            <span className="hidden lg:inline">
-              横に流れる時間帯の帯で、重なりやすい時間がすぐ分かります。
-            </span>
+            日付ごとの帯で、参加できる人が重なる時間を確認できます。
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
+          <SelectedBandDetails
+            selectedBand={selectedBand}
+            participantCount={responseCount}
+            expanded={expandedSelectedBand}
+            copyState={bandCopyState}
+            onToggleExpansion={toggleSelectedBandExpansion}
+            onCopy={handleCopyBandSummary}
+            onClear={() => {
+              setSelectedBand(null);
+              setExpandedSelectedBand(false);
+              setBandCopyState("idle");
+            }}
+          />
           <TimeBandHeatmap
             rows={rows}
             participantCount={responseCount}
@@ -401,7 +563,11 @@ export default function EventPage() {
             selectedBand={selectedBand}
             onSelectBand={openBand}
           />
-          <div className="mt-8 border-t-2 border-slate-200 pt-6">
+          <details className="mt-6 border-t border-slate-200 pt-4">
+            <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold text-blue-800">
+              カレンダーで日付ごとの重なりを見る
+            </summary>
+            <div className="pt-3">
             <CalendarAvailabilityHeatmap
               startDate={eventData.startDate}
               endDate={eventData.endDate}
@@ -410,7 +576,8 @@ export default function EventPage() {
               selectedBand={selectedBand}
               onSelectBand={openBand}
             />
-          </div>
+            </div>
+          </details>
         </CardContent>
       </Card>
     </div>

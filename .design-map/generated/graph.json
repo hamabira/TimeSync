@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-12T05:17:41.351470+00:00",
+  "generatedAt": "2026-10-12T06:31:22.289464+00:00",
   "project": {
     "name": "akimatch",
     "root": "."
   },
   "inputs": {
     "manifestHash": "f5895deaaf85fb905e7ef6de6b3d754b1cf283c3d7bda6b352e2b823de4b05aa",
-    "previewsHash": "a3888ec565c700f1d149e772303f925102a37d0a8107f03442f4c9bbb5b35238",
+    "previewsHash": "256cd74ca1f2ca9aba01073930cd263debf2860465a95b9e7dfff1ee58f9ce0f",
     "importConfigHash": "9584bb8896841a83f51dc45b2981a104c479713f2c1da7046aa247e6e23ae58e"
   },
   "nodes": [
@@ -1568,14 +1568,6 @@
       "adapter": "route-convention",
       "previews": [
         {
-          "storyId": "review-current-event--default",
-          "label": "Storybook: 現行UI（架空データ）",
-          "image": "screenshots/event-current.png",
-          "storyUrl": "http://127.0.0.1:6007/?path=/story/review-current-event--default",
-          "captureSource": "storybook",
-          "timestamp": "2026-10-12T05:17:41.114292+00:00"
-        },
-        {
           "storyId": "review-proposed-event--same-page",
           "label": "承認前モックA: 既存を活かす",
           "image": "screenshots/event-proposal-a.png",
@@ -1590,6 +1582,30 @@
           "storyUrl": "http://127.0.0.1:6007/?path=/story/review-proposed-event--separate-views",
           "captureSource": "storybook",
           "timestamp": "2026-10-12T05:17:41.248736+00:00"
+        },
+        {
+          "storyId": "review-current-event--default",
+          "label": "A · 実装画面",
+          "image": "screenshots/implemented-a-storybook.png",
+          "storyUrl": "http://127.0.0.1:6007/?path=/story/review-current-event--default",
+          "captureSource": "storybook",
+          "timestamp": "2026-10-12T06:31:21.962131+00:00"
+        },
+        {
+          "storyId": "review-current-event--save-error",
+          "label": "A · 提出後の保存エラー",
+          "image": "screenshots/implemented-a-save-error.png",
+          "storyUrl": "http://127.0.0.1:6007/?path=/story/review-current-event--save-error",
+          "captureSource": "storybook",
+          "timestamp": "2026-10-12T06:31:22.046429+00:00"
+        },
+        {
+          "storyId": "review-current-event--refresh-failed",
+          "label": "A · 保存成功・再読込失敗",
+          "image": "screenshots/implemented-a-refresh-failed.png",
+          "storyUrl": "http://127.0.0.1:6007/?path=/story/review-current-event--refresh-failed",
+          "captureSource": "storybook",
+          "timestamp": "2026-10-12T06:31:22.142271+00:00"
         }
       ]
     },
@@ -3297,7 +3313,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 19
+          "line": 23
         }
       ],
       "metadata": {
@@ -3316,7 +3332,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 20
+          "line": 24
         }
       ],
       "metadata": {
@@ -3335,7 +3351,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 21
+          "line": 25
         }
       ],
       "metadata": {
@@ -3430,7 +3446,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 22
+          "line": 26
         }
       ],
       "metadata": {
@@ -3449,7 +3465,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 27
+          "line": 31
         }
       ],
       "metadata": {
@@ -5141,7 +5157,7 @@
       "evidence": [
         {
           "file": "src/stories/baseline/current-event-screen.tsx",
-          "line": 23
+          "line": 24
         }
       ],
       "metadata": {
@@ -5160,7 +5176,7 @@
       "evidence": [
         {
           "file": "src/stories/baseline/current-event-screen.tsx",
-          "line": 24
+          "line": 25
         }
       ],
       "metadata": {
@@ -5179,7 +5195,7 @@
       "evidence": [
         {
           "file": "src/stories/baseline/current-event-screen.tsx",
-          "line": 25
+          "line": 26
         }
       ],
       "metadata": {
@@ -5198,7 +5214,7 @@
       "evidence": [
         {
           "file": "src/stories/baseline/current-event-screen.tsx",
-          "line": 26
+          "line": 27
         }
       ],
       "metadata": {
@@ -5217,7 +5233,7 @@
       "evidence": [
         {
           "file": "src/stories/baseline/current-event-screen.tsx",
-          "line": 6
+          "line": 8
         }
       ],
       "metadata": {
@@ -5236,12 +5252,31 @@
       "evidence": [
         {
           "file": "src/stories/baseline/current-event-screen.tsx",
-          "line": 7
+          "line": 9
         }
       ],
       "metadata": {
         "resolution": "file",
         "specifier": "@/components/time-band-heatmap"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-baseline-current-event-screen-tsx-3f5d9296-imports-file:b53a0602",
+      "from": "file:src-stories-baseline-current-event-screen-tsx:3f5d9296",
+      "to": "file:src-components-ui-card-tsx:9d8b7a18",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/baseline/current-event-screen.tsx",
+          "line": 7
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/components/ui/card"
       }
     },
     {
@@ -5255,7 +5290,7 @@
       "evidence": [
         {
           "file": "src/stories/baseline/current-event-screen.tsx",
-          "line": 8
+          "line": 10
         }
       ],
       "metadata": {
@@ -5274,7 +5309,7 @@
       "evidence": [
         {
           "file": "src/stories/baseline/current-event-screen.tsx",
-          "line": 13
+          "line": 11
         }
       ],
       "metadata": {
@@ -5293,7 +5328,7 @@
       "evidence": [
         {
           "file": "src/stories/baseline/current-event-screen.tsx",
-          "line": 33
+          "line": 29
         }
       ],
       "metadata": {
@@ -5302,9 +5337,9 @@
       }
     },
     {
-      "id": "edge:file-src-stories-baseline-current-event-screen-tsx-3f5d9296-imports-pack:2131bc0e",
+      "id": "edge:file-src-stories-baseline-current-event-screen-tsx-3f5d9296-imports-pack:f803f8e5",
       "from": "file:src-stories-baseline-current-event-screen-tsx:3f5d9296",
-      "to": "package:next:edee9402",
+      "to": "package:date-fns:c321bc86",
       "kind": "imports",
       "label": "imports",
       "origin": "extracted",
@@ -5312,13 +5347,13 @@
       "evidence": [
         {
           "file": "src/stories/baseline/current-event-screen.tsx",
-          "line": 4
+          "line": 5
         }
       ],
       "metadata": {
         "resolution": "package",
-        "specifier": "next/link",
-        "package": "next"
+        "specifier": "date-fns/locale",
+        "package": "date-fns"
       }
     },
     {

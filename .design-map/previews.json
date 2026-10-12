@@ -3,14 +3,6 @@
   "screens": {
     "screen:e-id:25451780": [
       {
-        "storyId": "review-current-event--default",
-        "label": "Storybook: 現行UI（架空データ）",
-        "image": "screenshots/event-current.png",
-        "storyUrl": "http://127.0.0.1:6007/?path=/story/review-current-event--default",
-        "captureSource": "storybook",
-        "timestamp": "2026-10-12T05:17:41.114292+00:00"
-      },
-      {
         "storyId": "review-proposed-event--same-page",
         "label": "承認前モックA: 既存を活かす",
         "image": "screenshots/event-proposal-a.png",
@@ -25,6 +17,30 @@
         "storyUrl": "http://127.0.0.1:6007/?path=/story/review-proposed-event--separate-views",
         "captureSource": "storybook",
         "timestamp": "2026-10-12T05:17:41.248736+00:00"
+      },
+      {
+        "storyId": "review-current-event--default",
+        "label": "A · 実装画面",
+        "image": "screenshots/implemented-a-storybook.png",
+        "storyUrl": "http://127.0.0.1:6007/?path=/story/review-current-event--default",
+        "captureSource": "storybook",
+        "timestamp": "2026-10-12T06:31:21.962131+00:00"
+      },
+      {
+        "storyId": "review-current-event--save-error",
+        "label": "A · 提出後の保存エラー",
+        "image": "screenshots/implemented-a-save-error.png",
+        "storyUrl": "http://127.0.0.1:6007/?path=/story/review-current-event--save-error",
+        "captureSource": "storybook",
+        "timestamp": "2026-10-12T06:31:22.046429+00:00"
+      },
+      {
+        "storyId": "review-current-event--refresh-failed",
+        "label": "A · 保存成功・再読込失敗",
+        "image": "screenshots/implemented-a-refresh-failed.png",
+        "storyUrl": "http://127.0.0.1:6007/?path=/story/review-current-event--refresh-failed",
+        "captureSource": "storybook",
+        "timestamp": "2026-10-12T06:31:22.142271+00:00"
       }
     ]
   }

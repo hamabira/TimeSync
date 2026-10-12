@@ -216,6 +216,7 @@ function DesktopTimeBandHeatmap({
 
                 {row.cells.map((cell) => {
                   const cellKey = getTimeBandKey(row.date, cell.hour);
+                  const dateLabel = format(dateOnlyToDate(row.date), "M/d (E)", { locale: ja });
                   const isHighlighted =
                     highlightedKey === cellKey ||
                     isCellWithinBand(row, cell.hour, selectedBand);
@@ -231,13 +232,18 @@ function DesktopTimeBandHeatmap({
                         getHeatmapCellClass(cell.count, participantCount),
                         isHighlighted && "ring-2 ring-blue-500 ring-offset-1"
                       )}
+                      aria-label={
+                        dateLabel + " " + formatHourRange(cell.hour, cell.hour + 1) + ": " +
+                        (cell.count > 0 ? cell.count + "人参加可能" : "回答なし")
+                      }
                       title={
                         cell.count > 0
-                          ? `${formatHourRange(cell.hour, cell.hour + 1)}: ${cell.attendeeNames.join("、")}`
-                          : `${formatHourRange(cell.hour, cell.hour + 1)}: 回答なし`
+                          ? `${dateLabel} ${formatHourRange(cell.hour, cell.hour + 1)}: ${cell.attendeeNames.join("、")}`
+                          : `${dateLabel} ${formatHourRange(cell.hour, cell.hour + 1)}: 回答なし`
                       }
                     >
                       <span className="sr-only">
+                        {dateLabel} {" "}
                         {formatHourRange(cell.hour, cell.hour + 1)}{" "}
                         {cell.count > 0 ? `${cell.count}人参加可能` : "回答なし"}
                       </span>
