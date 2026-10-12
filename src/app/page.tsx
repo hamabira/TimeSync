@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DateRangePicker } from "@/components/date-range-picker";
 import { getPresetDateRange } from "@/lib/date-range";
 import { dateToDateOnly } from "@/lib/date-only";
+import { createEventDraftKey, usePwaDraft } from "@/lib/pwa-draft-protection";
 
 export default function Home() {
   const router = useRouter();
@@ -21,7 +22,23 @@ export default function Home() {
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [date, setDate] = useState<DateRange | undefined>(() => getPresetDateRange("week"));
+  const [initialDateRange] = useState<DateRange>(() => getPresetDateRange("week"));
+  const [date, setDate] = useState<DateRange | undefined>(initialDateRange);
+  const [initialDraftKey] = useState(() =>
+    createEventDraftKey(
+      "",
+      "",
+      initialDateRange.from ? dateToDateOnly(initialDateRange.from) : null,
+      initialDateRange.to ? dateToDateOnly(initialDateRange.to) : null
+    )
+  );
+  const currentDraftKey = createEventDraftKey(
+    eventName,
+    description,
+    date?.from ? dateToDateOnly(date.from) : null,
+    date?.to ? dateToDateOnly(date.to) : null
+  );
+  usePwaDraft(currentDraftKey !== initialDraftKey, isSubmitting);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

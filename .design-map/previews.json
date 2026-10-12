@@ -49,6 +49,14 @@
         "storyUrl": "http://127.0.0.1:6007/?path=/story/review-pwa-experience--home-screen",
         "captureSource": "storybook",
         "timestamp": "2026-10-12T07:07:12.161879+00:00"
+      },
+      {
+        "storyId": "review-pwa-experience--update-while-editing",
+        "label": "PWA更新通知・未保存入力（実装コンポーネント）",
+        "image": "screenshots/pwa-update-dirty-implemented.png",
+        "storyUrl": "http://127.0.0.1:6007/?path=/story/review-pwa-experience--update-while-editing",
+        "captureSource": "storybook",
+        "timestamp": "2026-10-12T07:37:45.156884+00:00"
       }
     ]
   }

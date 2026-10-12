@@ -11,7 +11,16 @@ import {
   type ReactNode,
 } from "react";
 import type { EarlyInstallCapture } from "@/lib/pwa-install-capture";
-import { Download, X } from "lucide-react";
+import {
+  getPwaDraftProtectionStatus,
+  usePwaDraftProtectionStatus,
+} from "@/lib/pwa-draft-protection";
+import {
+  PwaUpdateController,
+  type PwaUpdateServiceWorkerContainer,
+  type PwaUpdateState,
+} from "@/lib/pwa-updates";
+import { Download, RefreshCw, Wifi, WifiOff, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type InstallablePlatform = "ios" | "installable";
@@ -46,7 +55,24 @@ export type PwaInstallPromptViewProps = {
   onDismiss?: () => void;
 };
 
+export type PwaUpdateNoticeViewProps = {
+  state: PwaUpdateState;
+  isDirty: boolean;
+  isBusy: boolean;
+  onApplyUpdate?: () => void;
+};
+
+export type PwaConnectionNoticeViewProps = {
+  state: "offline" | "reconnected" | null;
+  isOnline: boolean;
+  isDirty: boolean;
+  isBusy: boolean;
+  onRetry?: () => void;
+  onDismiss?: () => void;
+};
+
 type PwaInstallContextValue = {
+  runtimeNotice: ReactNode;
   environment: PwaEnvironment | null;
   isStandalone: boolean | null;
   wasInstalled: boolean;
@@ -61,6 +87,23 @@ type PwaInstallContextValue = {
 };
 
 const PwaInstallContext = createContext<PwaInstallContextValue | null>(null);
+
+function subscribeToOnlineStatus(listener: () => void) {
+  window.addEventListener("online", listener);
+  window.addEventListener("offline", listener);
+  return () => {
+    window.removeEventListener("online", listener);
+    window.removeEventListener("offline", listener);
+  };
+}
+
+function getOnlineSnapshot() {
+  return typeof navigator === "undefined" ? true : navigator.onLine;
+}
+
+function getServerOnlineSnapshot() {
+  return true;
+}
 
 function detectEnvironment(): PwaEnvironment {
   const userAgent = navigator.userAgent;
@@ -193,8 +236,114 @@ export function PwaInstallPromptView({
   );
 }
 
+export function PwaUpdateNoticeView({
+  state,
+  isDirty,
+  isBusy,
+  onApplyUpdate,
+}: PwaUpdateNoticeViewProps) {
+  if (state === "hidden") return null;
+  const actionBlocked = isDirty || isBusy;
+  const isReloadNeeded = state === "reload-needed";
+
+  return (
+    <section
+      aria-labelledby="pwa-update-title"
+      className="rounded-2xl border border-blue-200 bg-white p-4 shadow-lg"
+    >
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+          <RefreshCw aria-hidden="true" className="size-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 id="pwa-update-title" className="font-semibold text-slate-900">
+            {state === "activating" ? "更新を適用しています" : isReloadNeeded ? "更新を適用しました" : "新しいバージョンを利用できます"}
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            {state === "activating"
+              ? "準備ができるとページが更新されます。"
+              : isReloadNeeded
+                ? actionBlocked
+                  ? "入力中の内容を保存してから再読み込みしてください。"
+                  : "再読み込みすると新しいバージョンを利用できます。"
+                : isBusy
+                  ? "回答を保存中です。保存が終わってから更新してください。"
+                  : isDirty
+                    ? "入力中の内容があります。保存してから更新してください。"
+                    : "更新を適用して、最新の状態を利用できます。"}
+          </p>
+          {state !== "activating" ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-3 min-h-11 border-blue-300 text-blue-800 hover:bg-blue-50"
+              disabled={actionBlocked}
+              onClick={onApplyUpdate}
+            >
+              {isReloadNeeded ? "再読み込み" : "更新する"}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function PwaConnectionNoticeView({
+  state,
+  isOnline,
+  isDirty,
+  isBusy,
+  onRetry,
+  onDismiss,
+}: PwaConnectionNoticeViewProps) {
+  if (!state) return null;
+  const actionBlocked = !isOnline || isDirty || isBusy;
+
+  return (
+    <section
+      className={`rounded-2xl border p-4 shadow-lg ${state === "offline" ? "border-amber-300 bg-amber-50" : "border-emerald-200 bg-white"}`}
+    >
+      <div className="flex items-start gap-3">
+        <span className={`mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl ${state === "offline" ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>
+          {state === "offline" ? <WifiOff aria-hidden="true" className="size-5" /> : <Wifi aria-hidden="true" className="size-5" />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="font-semibold text-slate-900">
+            {state === "offline" ? "インターネットに接続できません" : "接続が戻りました"}
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            {state === "offline"
+              ? "回答の保存には接続が必要です。入力内容はこの画面に残っています。"
+              : actionBlocked
+                ? "入力中の内容を保存してから再読み込みできます。"
+                : "最新の状態を確認するには、手動で再読み込みしてください。"}
+          </p>
+          {state === "reconnected" ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-3 min-h-11 border-emerald-300 text-emerald-800 hover:bg-emerald-50"
+              disabled={actionBlocked}
+              onClick={onRetry}
+            >
+              再読み込み
+            </Button>
+          ) : null}
+          {state === "reconnected" && onDismiss ? (
+            <Button type="button" variant="ghost" className="mt-3 ml-2 min-h-11" onClick={onDismiss}>
+              閉じる
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function PwaInstallProvider({ children }: { children: ReactNode }) {
   const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
+  const updateControllerRef = useRef<PwaUpdateController | null>(null);
   const environmentSnapshot = useSyncExternalStore(
     subscribeToEnvironment,
     getEnvironmentSnapshot,
@@ -206,6 +355,12 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
         isSafari: environmentSnapshot === "ios-safari",
       }
     : null;
+  const isOnline = useSyncExternalStore(
+    subscribeToOnlineStatus,
+    getOnlineSnapshot,
+    getServerOnlineSnapshot
+  );
+  const draftProtection = usePwaDraftProtectionStatus();
   const [isStandalone, setIsStandalone] = useState<boolean | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [wasInstalled, setWasInstalled] = useState(false);
@@ -213,6 +368,51 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
   const [isInstalling, setIsInstalling] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [notice, setNotice] = useState<PwaInstallPromptNotice | null>(null);
+  const [connectionNotice, setConnectionNotice] = useState<"offline" | "reconnected" | null>(null);
+  const [updateState, setUpdateState] = useState<PwaUpdateState>("hidden");
+
+  useEffect(() => {
+    const handleOffline = () => setConnectionNotice("offline");
+    const handleOnline = () => setConnectionNotice("reconnected");
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production" || !window.isSecureContext || !("serviceWorker" in navigator)) {
+      return;
+    }
+
+    const controller = new PwaUpdateController({
+      serviceWorker: navigator.serviceWorker as unknown as PwaUpdateServiceWorkerContainer,
+      canReload: () => {
+        const currentDrafts = getPwaDraftProtectionStatus();
+        return !currentDrafts.hasDirtyDraft && !currentDrafts.hasBusyForm;
+      },
+      reload: () => window.location.reload(),
+      onStateChange: setUpdateState,
+    });
+    updateControllerRef.current = controller;
+    const checkWhenVisible = () => {
+      if (document.visibilityState === "visible") void controller.checkForUpdate();
+    };
+    const checkWhenOnline = () => void controller.checkForUpdate();
+
+    document.addEventListener("visibilitychange", checkWhenVisible);
+    window.addEventListener("online", checkWhenOnline);
+    void controller.start();
+
+    return () => {
+      document.removeEventListener("visibilitychange", checkWhenVisible);
+      window.removeEventListener("online", checkWhenOnline);
+      controller.stop();
+      if (updateControllerRef.current === controller) updateControllerRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     const displayModes = [
@@ -289,7 +489,37 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
   }, [isInstalling]);
 
   const toggleGuide = useCallback(() => setGuideOpen((open) => !open), []);
+
+
+  const connectionState = isOnline ? connectionNotice : "offline";
+  const runtimeNoticeVisible = connectionState !== null || updateState !== "hidden";
+  const applyUpdate = () => updateControllerRef.current?.activateOrReload();
+  const retryConnection = () => {
+    const currentDrafts = getPwaDraftProtectionStatus();
+    if (!isOnline || currentDrafts.hasDirtyDraft || currentDrafts.hasBusyForm) return;
+    window.location.reload();
+  };
+
+  const runtimeNotice = runtimeNoticeVisible ? (
+    <div className="mx-auto mb-6 w-full max-w-3xl space-y-3">
+      <PwaConnectionNoticeView
+        state={connectionState}
+        isOnline={isOnline}
+        isDirty={draftProtection.hasDirtyDraft}
+        isBusy={draftProtection.hasBusyForm}
+        onRetry={retryConnection}
+        onDismiss={() => setConnectionNotice(null)}
+      />
+      <PwaUpdateNoticeView
+        state={updateState}
+        isDirty={draftProtection.hasDirtyDraft}
+        isBusy={draftProtection.hasBusyForm}
+        onApplyUpdate={applyUpdate}
+      />
+    </div>
+  ) : null;
   const value: PwaInstallContextValue = {
+    runtimeNotice,
     environment,
     isStandalone,
     wasInstalled,
@@ -304,6 +534,11 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
   };
 
   return <PwaInstallContext.Provider value={value}>{children}</PwaInstallContext.Provider>;
+}
+
+export function PwaRuntimeNotices() {
+  const runtimeNotice = useContext(PwaInstallContext)?.runtimeNotice ?? null;
+  return <div aria-live="polite">{runtimeNotice}</div>;
 }
 
 export function PwaInstallPrompt() {

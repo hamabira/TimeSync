@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-12T07:07:12.490235+00:00",
+  "generatedAt": "2026-10-12T07:37:45.282017+00:00",
   "project": {
     "name": "akimatch",
     "root": "."
   },
   "inputs": {
     "manifestHash": "f5895deaaf85fb905e7ef6de6b3d754b1cf283c3d7bda6b352e2b823de4b05aa",
-    "previewsHash": "0c63dec75201ce4cc3f6891f4c99aa684a02f42f225c98e15332850c31c61dcd",
+    "previewsHash": "c2ec2917c1988de67650640b1c80e6bc00d7ea174798337bb0398aa398748264",
     "importConfigHash": "9584bb8896841a83f51dc45b2981a104c479713f2c1da7046aa247e6e23ae58e"
   },
   "nodes": [
@@ -274,6 +274,19 @@
         "line": null
       },
       "path": "README.md"
+    },
+    {
+      "id": "file:public-headers:8f2318ee",
+      "kind": "file",
+      "label": "_headers",
+      "description": "Source file public/_headers",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "public/_headers",
+        "line": null
+      },
+      "path": "public/_headers"
     },
     {
       "id": "file:drizzle-meta-journal-json:31ec4420",
@@ -601,6 +614,19 @@
       "path": "src/stories/fixtures.ts"
     },
     {
+      "id": "file:scripts-generate-service-worker-mjs:0df20d60",
+      "kind": "file",
+      "label": "generate-service-worker.mjs",
+      "description": "Source file scripts/generate-service-worker.mjs",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "scripts/generate-service-worker.mjs",
+        "line": null
+      },
+      "path": "scripts/generate-service-worker.mjs"
+    },
+    {
       "id": "file:src-app-globals-css:da1d6f21",
       "kind": "file",
       "label": "globals.css",
@@ -729,6 +755,19 @@
         "line": null
       },
       "path": "next.config.ts"
+    },
+    {
+      "id": "file:public-offline-html:24479f7c",
+      "kind": "file",
+      "label": "offline.html",
+      "description": "Source file public/offline.html",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "public/offline.html",
+        "line": null
+      },
+      "path": "public/offline.html"
     },
     {
       "id": "file:open-next-config-ts:30371bd0",
@@ -887,6 +926,32 @@
       "path": "src/stories/proposals/proposal.css"
     },
     {
+      "id": "file:tests-pwa-draft-protection-test-mjs:1a01e530",
+      "kind": "file",
+      "label": "pwa-draft-protection.test.mjs",
+      "description": "Source file tests/pwa-draft-protection.test.mjs",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "tests/pwa-draft-protection.test.mjs",
+        "line": null
+      },
+      "path": "tests/pwa-draft-protection.test.mjs"
+    },
+    {
+      "id": "file:src-lib-pwa-draft-protection-ts:21efadd0",
+      "kind": "file",
+      "label": "pwa-draft-protection.ts",
+      "description": "Source file src/lib/pwa-draft-protection.ts",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "src/lib/pwa-draft-protection.ts",
+        "line": null
+      },
+      "path": "src/lib/pwa-draft-protection.ts"
+    },
+    {
       "id": "file:src-stories-proposals-pwa-experience-stories-tsx:fe413da8",
       "kind": "file",
       "label": "pwa-experience.stories.tsx",
@@ -937,6 +1002,45 @@
         "line": null
       },
       "path": "src/components/pwa-install-prompt.tsx"
+    },
+    {
+      "id": "file:tests-pwa-offline-test-mjs:0de014e0",
+      "kind": "file",
+      "label": "pwa-offline.test.mjs",
+      "description": "Source file tests/pwa-offline.test.mjs",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "tests/pwa-offline.test.mjs",
+        "line": null
+      },
+      "path": "tests/pwa-offline.test.mjs"
+    },
+    {
+      "id": "file:tests-pwa-updates-test-mjs:2c991b5f",
+      "kind": "file",
+      "label": "pwa-updates.test.mjs",
+      "description": "Source file tests/pwa-updates.test.mjs",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "tests/pwa-updates.test.mjs",
+        "line": null
+      },
+      "path": "tests/pwa-updates.test.mjs"
+    },
+    {
+      "id": "file:src-lib-pwa-updates-ts:9f85e5c9",
+      "kind": "file",
+      "label": "pwa-updates.ts",
+      "description": "Source file src/lib/pwa-updates.ts",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "src/lib/pwa-updates.ts",
+        "line": null
+      },
+      "path": "src/lib/pwa-updates.ts"
     },
     {
       "id": "file:src-stories-baseline-response-form-stories-tsx:7fbc4581",
@@ -1015,6 +1119,19 @@
         "line": null
       },
       "path": "src/db/schema.ts"
+    },
+    {
+      "id": "file:src-pwa-service-worker-js:6aa05ce4",
+      "kind": "file",
+      "label": "service-worker.js",
+      "description": "Source file src/pwa/service-worker.js",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "src/pwa/service-worker.js",
+        "line": null
+      },
+      "path": "src/pwa/service-worker.js"
     },
     {
       "id": "file:src-lib-site-url-ts:c577d5fb",
@@ -1413,6 +1530,19 @@
       "external": true
     },
     {
+      "id": "package:node-crypto:c7dfc512",
+      "kind": "package",
+      "label": "node:crypto",
+      "description": "Imported package node:crypto",
+      "origin": "inferred",
+      "confidence": 0.85,
+      "source": {
+        "file": "scripts/generate-service-worker.mjs",
+        "line": null
+      },
+      "external": true
+    },
+    {
       "id": "package:node-fs:a15b7d96",
       "kind": "package",
       "label": "node:fs",
@@ -1420,7 +1550,20 @@
       "origin": "inferred",
       "confidence": 0.85,
       "source": {
-        "file": "tests/date-only.test.mjs",
+        "file": "scripts/generate-service-worker.mjs",
+        "line": null
+      },
+      "external": true
+    },
+    {
+      "id": "package:node-path:78811c13",
+      "kind": "package",
+      "label": "node:path",
+      "description": "Imported package node:path",
+      "origin": "inferred",
+      "confidence": 0.85,
+      "source": {
+        "file": "scripts/generate-service-worker.mjs",
         "line": null
       },
       "external": true
@@ -1447,6 +1590,19 @@
       "confidence": 0.85,
       "source": {
         "file": "tests/date-only.test.mjs",
+        "line": null
+      },
+      "external": true
+    },
+    {
+      "id": "package:node-url:d0cb3ad7",
+      "kind": "package",
+      "label": "node:url",
+      "description": "Imported package node:url",
+      "origin": "inferred",
+      "confidence": 0.85,
+      "source": {
+        "file": "scripts/generate-service-worker.mjs",
         "line": null
       },
       "external": true
@@ -1679,6 +1835,14 @@
           "storyUrl": "http://127.0.0.1:6007/?path=/story/review-pwa-experience--home-screen",
           "captureSource": "storybook",
           "timestamp": "2026-10-12T07:07:12.161879+00:00"
+        },
+        {
+          "storyId": "review-pwa-experience--update-while-editing",
+          "label": "PWA更新通知・未保存入力（実装コンポーネント）",
+          "image": "screenshots/pwa-update-dirty-implemented.png",
+          "storyUrl": "http://127.0.0.1:6007/?path=/story/review-pwa-experience--update-while-editing",
+          "captureSource": "storybook",
+          "timestamp": "2026-10-12T07:37:45.156884+00:00"
         }
       ]
     },
@@ -2663,6 +2827,86 @@
       }
     },
     {
+      "id": "edge:file-scripts-generate-service-worker-mjs-0df20d60-imports-package-node-c:ea858146",
+      "from": "file:scripts-generate-service-worker-mjs:0df20d60",
+      "to": "package:node-crypto:c7dfc512",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "scripts/generate-service-worker.mjs",
+          "line": 1
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:crypto",
+        "package": "node:crypto"
+      }
+    },
+    {
+      "id": "edge:file-scripts-generate-service-worker-mjs-0df20d60-imports-package-node-f:bf08d4da",
+      "from": "file:scripts-generate-service-worker-mjs:0df20d60",
+      "to": "package:node-fs:a15b7d96",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "scripts/generate-service-worker.mjs",
+          "line": 2
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:fs",
+        "package": "node:fs"
+      }
+    },
+    {
+      "id": "edge:file-scripts-generate-service-worker-mjs-0df20d60-imports-package-node-p:b17a6a7e",
+      "from": "file:scripts-generate-service-worker-mjs:0df20d60",
+      "to": "package:node-path:78811c13",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "scripts/generate-service-worker.mjs",
+          "line": 3
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:path",
+        "package": "node:path"
+      }
+    },
+    {
+      "id": "edge:file-scripts-generate-service-worker-mjs-0df20d60-imports-package-node-u:faee7963",
+      "from": "file:scripts-generate-service-worker-mjs:0df20d60",
+      "to": "package:node-url:d0cb3ad7",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "scripts/generate-service-worker.mjs",
+          "line": 4
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:url",
+        "package": "node:url"
+      }
+    },
+    {
       "id": "edge:file-src-app-actions-ts-d14d3a61-imports-file-src-db-event-ts-d68ed6fc-s:b9598896",
       "from": "file:src-app-actions-ts:d14d3a61",
       "to": "file:src-db-event-ts:d68ed6fc",
@@ -3367,7 +3611,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 19
+          "line": 20
         }
       ],
       "metadata": {
@@ -3386,7 +3630,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 24
+          "line": 25
         }
       ],
       "metadata": {
@@ -3405,7 +3649,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 25
+          "line": 26
         }
       ],
       "metadata": {
@@ -3424,7 +3668,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 26
+          "line": 27
         }
       ],
       "metadata": {
@@ -3538,12 +3782,31 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 27
+          "line": 28
         }
       ],
       "metadata": {
         "resolution": "file",
         "specifier": "@/lib/date-only"
+      }
+    },
+    {
+      "id": "edge:file-src-app-e-id-page-tsx-822fb796-imports-file-src-lib-pwa-draft-prote:a21ac38f",
+      "from": "file:src-app-e-id-page-tsx:822fb796",
+      "to": "file:src-lib-pwa-draft-protection-ts:21efadd0",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/app/e/[id]/page.tsx",
+          "line": 19
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/lib/pwa-draft-protection"
       }
     },
     {
@@ -3557,7 +3820,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 32
+          "line": 33
         }
       ],
       "metadata": {
@@ -3929,6 +4192,25 @@
       "metadata": {
         "resolution": "file",
         "specifier": "@/lib/date-range"
+      }
+    },
+    {
+      "id": "edge:file-src-app-page-tsx-3393394e-imports-file-src-lib-pwa-draft-protection:92ed5484",
+      "from": "file:src-app-page-tsx:3393394e",
+      "to": "file:src-lib-pwa-draft-protection-ts:21efadd0",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/app/page.tsx",
+          "line": 17
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/lib/pwa-draft-protection"
       }
     },
     {
@@ -4430,12 +4712,31 @@
       "evidence": [
         {
           "file": "src/components/pwa-install-prompt.tsx",
-          "line": 15
+          "line": 24
         }
       ],
       "metadata": {
         "resolution": "file",
         "specifier": "@/components/ui/button"
+      }
+    },
+    {
+      "id": "edge:file-src-components-pwa-install-prompt-tsx-78884173-imports-file-src-lib:8d07688e",
+      "from": "file:src-components-pwa-install-prompt-tsx:78884173",
+      "to": "file:src-lib-pwa-draft-protection-ts:21efadd0",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/components/pwa-install-prompt.tsx",
+          "line": 14
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/lib/pwa-draft-protection"
       }
     },
     {
@@ -4458,6 +4759,25 @@
       }
     },
     {
+      "id": "edge:file-src-components-pwa-install-prompt-tsx-78884173-imports-file-src-lib:386b7778",
+      "from": "file:src-components-pwa-install-prompt-tsx:78884173",
+      "to": "file:src-lib-pwa-updates-ts:9f85e5c9",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/components/pwa-install-prompt.tsx",
+          "line": 18
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/lib/pwa-updates"
+      }
+    },
+    {
       "id": "edge:file-src-components-pwa-install-prompt-tsx-78884173-imports-package-luci:b93fadf9",
       "from": "file:src-components-pwa-install-prompt-tsx:78884173",
       "to": "package:lucide-react:0cab62d1",
@@ -4468,7 +4788,7 @@
       "evidence": [
         {
           "file": "src/components/pwa-install-prompt.tsx",
-          "line": 14
+          "line": 23
         }
       ],
       "metadata": {
@@ -5236,6 +5556,45 @@
         "resolution": "package",
         "specifier": "react-day-picker",
         "package": "react-day-picker"
+      }
+    },
+    {
+      "id": "edge:file-src-lib-pwa-draft-protection-ts-21efadd0-imports-file-src-lib-sched:fbd1cc08",
+      "from": "file:src-lib-pwa-draft-protection-ts:21efadd0",
+      "to": "file:src-lib-scheduling-ts:22aaaf7b",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/lib/pwa-draft-protection.ts",
+          "line": 2
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "./scheduling.ts"
+      }
+    },
+    {
+      "id": "edge:file-src-lib-pwa-draft-protection-ts-21efadd0-imports-package-react-6b81:9be3632b",
+      "from": "file:src-lib-pwa-draft-protection-ts:21efadd0",
+      "to": "package:react:6b810c90",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/lib/pwa-draft-protection.ts",
+          "line": 1
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "react",
+        "package": "react"
       }
     },
     {
@@ -6233,7 +6592,7 @@
       "evidence": [
         {
           "file": "src/stories/proposals/pwa-experience.stories.tsx",
-          "line": 6
+          "line": 9
         }
       ],
       "metadata": {
@@ -6734,6 +7093,65 @@
       }
     },
     {
+      "id": "edge:file-tests-pwa-draft-protection-test-mjs-1a01e530-imports-file-src-lib-p:2824a480",
+      "from": "file:tests-pwa-draft-protection-test-mjs:1a01e530",
+      "to": "file:src-lib-pwa-draft-protection-ts:21efadd0",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-draft-protection.test.mjs",
+          "line": 3
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "../src/lib/pwa-draft-protection.ts"
+      }
+    },
+    {
+      "id": "edge:file-tests-pwa-draft-protection-test-mjs-1a01e530-imports-package-node-a:51287948",
+      "from": "file:tests-pwa-draft-protection-test-mjs:1a01e530",
+      "to": "package:node-assert:f1a93ba5",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-draft-protection.test.mjs",
+          "line": 1
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:assert/strict",
+        "package": "node:assert"
+      }
+    },
+    {
+      "id": "edge:file-tests-pwa-draft-protection-test-mjs-1a01e530-imports-package-node-t:888ff14f",
+      "from": "file:tests-pwa-draft-protection-test-mjs:1a01e530",
+      "to": "package:node-test:a8c66a4f",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-draft-protection.test.mjs",
+          "line": 2
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:test",
+        "package": "node:test"
+      }
+    },
+    {
       "id": "edge:file-tests-pwa-install-capture-test-mjs-21736349-imports-file-src-lib-pw:1759a7d3",
       "from": "file:tests-pwa-install-capture-test-mjs:21736349",
       "to": "file:src-lib-pwa-install-capture-ts:4e2fd994",
@@ -6813,6 +7231,164 @@
       }
     },
     {
+      "id": "edge:file-tests-pwa-offline-test-mjs-0de014e0-imports-file-scripts-generate-s:fbef8340",
+      "from": "file:tests-pwa-offline-test-mjs:0de014e0",
+      "to": "file:scripts-generate-service-worker-mjs:0df20d60",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-offline.test.mjs",
+          "line": 5
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "../scripts/generate-service-worker.mjs"
+      }
+    },
+    {
+      "id": "edge:file-tests-pwa-offline-test-mjs-0de014e0-imports-package-node-assert-f1a:fd745095",
+      "from": "file:tests-pwa-offline-test-mjs:0de014e0",
+      "to": "package:node-assert:f1a93ba5",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-offline.test.mjs",
+          "line": 1
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:assert/strict",
+        "package": "node:assert"
+      }
+    },
+    {
+      "id": "edge:file-tests-pwa-offline-test-mjs-0de014e0-imports-package-node-fs-a15b7d9:8629ff49",
+      "from": "file:tests-pwa-offline-test-mjs:0de014e0",
+      "to": "package:node-fs:a15b7d96",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-offline.test.mjs",
+          "line": 2
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:fs",
+        "package": "node:fs"
+      }
+    },
+    {
+      "id": "edge:file-tests-pwa-offline-test-mjs-0de014e0-imports-package-node-test-a8c66:ec450d88",
+      "from": "file:tests-pwa-offline-test-mjs:0de014e0",
+      "to": "package:node-test:a8c66a4f",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-offline.test.mjs",
+          "line": 4
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:test",
+        "package": "node:test"
+      }
+    },
+    {
+      "id": "edge:file-tests-pwa-offline-test-mjs-0de014e0-imports-package-node-vm-e83aa31:db51d9d3",
+      "from": "file:tests-pwa-offline-test-mjs:0de014e0",
+      "to": "package:node-vm:e83aa31f",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-offline.test.mjs",
+          "line": 3
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:vm",
+        "package": "node:vm"
+      }
+    },
+    {
+      "id": "edge:file-tests-pwa-updates-test-mjs-2c991b5f-imports-file-src-lib-pwa-update:ad45ea0b",
+      "from": "file:tests-pwa-updates-test-mjs:2c991b5f",
+      "to": "file:src-lib-pwa-updates-ts:9f85e5c9",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-updates.test.mjs",
+          "line": 3
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "../src/lib/pwa-updates.ts"
+      }
+    },
+    {
+      "id": "edge:file-tests-pwa-updates-test-mjs-2c991b5f-imports-package-node-assert-f1a:108414e2",
+      "from": "file:tests-pwa-updates-test-mjs:2c991b5f",
+      "to": "package:node-assert:f1a93ba5",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-updates.test.mjs",
+          "line": 1
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:assert/strict",
+        "package": "node:assert"
+      }
+    },
+    {
+      "id": "edge:file-tests-pwa-updates-test-mjs-2c991b5f-imports-package-node-test-a8c66:3712c97a",
+      "from": "file:tests-pwa-updates-test-mjs:2c991b5f",
+      "to": "package:node-test:a8c66a4f",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-updates.test.mjs",
+          "line": 2
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:test",
+        "package": "node:test"
+      }
+    },
+    {
       "id": "edge:file-tests-scheduling-test-mjs-752efadf-imports-file-src-lib-scheduling-:fa589651",
       "from": "file:tests-scheduling-test-mjs:752efadf",
       "to": "file:src-lib-scheduling-ts:22aaaf7b",
@@ -6882,7 +7458,7 @@
       "evidence": [
         {
           "file": "src/app/layout.tsx",
-          "line": 85
+          "line": 86
         }
       ],
       "metadata": {
@@ -6902,7 +7478,7 @@
       "evidence": [
         {
           "file": "src/app/layout.tsx",
-          "line": 82
+          "line": 83
         }
       ],
       "metadata": {
@@ -6922,7 +7498,7 @@
       "evidence": [
         {
           "file": "src/app/page.tsx",
-          "line": 136
+          "line": 153
         }
       ],
       "metadata": {
@@ -6940,7 +7516,7 @@
       "evidence": [
         {
           "file": "src/app/page.tsx",
-          "line": 132
+          "line": 149
         }
       ],
       "metadata": {

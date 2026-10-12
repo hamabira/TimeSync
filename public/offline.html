@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#2563eb">
+    <title>接続できません · AkiMatch</title>
+    <style>
+      :root { color-scheme: light; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif; color: #172033; background: #f8fafc; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: start center; padding: 12vh 1rem 2rem; }
+      main { width: min(100%, 36rem); padding: 2rem; border: 1px solid #dbe3ed; border-radius: 1rem; background: #fff; box-shadow: 0 12px 32px rgb(15 23 42 / 8%); }
+      .brand { color: #1d4ed8; font-size: .875rem; font-weight: 700; letter-spacing: .02em; }
+      h1 { margin: 1rem 0 .5rem; font-size: clamp(1.5rem, 5vw, 2rem); line-height: 1.35; }
+      p { margin: .75rem 0 0; color: #475569; font-size: 1rem; line-height: 1.8; }
+      button { min-height: 48px; margin-top: 1.5rem; border: 0; border-radius: .65rem; background: #1d4ed8; color: #fff; padding: 0 1.25rem; font: inherit; font-weight: 700; cursor: pointer; }
+      button:focus-visible { outline: 3px solid #93c5fd; outline-offset: 3px; }
+      @media (max-width: 40rem) { body { padding-top: 8vh; } main { padding: 1.25rem; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="brand">AkiMatch</div>
+      <h1>いまは接続できません</h1>
+      <p id="offline-message">回答の保存にはインターネット接続が必要です。接続を確認してから、もう一度お試しください。</p>
+      <button id="retry" type="button">再読み込み</button>
+    </main>
+    <script>
+      const message = document.getElementById("offline-message");
+      document.getElementById("retry").addEventListener("click", () => window.location.reload());
+      window.addEventListener("online", () => {
+        message.textContent = "接続が戻りました。最新のページを開くには、再読み込みしてください。";
+      });
+    </script>
+  </body>
+</html>

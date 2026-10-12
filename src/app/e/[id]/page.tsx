@@ -16,6 +16,7 @@ import { CalendarAvailabilityHeatmap } from "@/components/calendar-availability-
 import { TimeBandHeatmap } from "@/components/time-band-heatmap";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { getEventWithParticipants, submitResponse } from "@/app/actions";
+import { createResponseDraftKey, usePwaDraft } from "@/lib/pwa-draft-protection";
 import {
   BestCandidateSummary,
   CandidateSummaryPanel,
@@ -85,6 +86,7 @@ export default function EventPage() {
   const [copyState, setCopyState] = useState<CopyState>("idle");
   const [bandCopyState, setBandCopyState] = useState<CopyState>("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [savedDraftKey, setSavedDraftKey] = useState(() => createResponseDraftKey("", []));
 
   const loadEvent = useCallback(() => {
     if (!eventId) {
@@ -138,6 +140,8 @@ export default function EventPage() {
 
   const responseCount = participantsData.length;
   const normalizedName = normalizeParticipantName(userName);
+  const currentDraftKey = createResponseDraftKey(normalizedName, timeSlots);
+  usePwaDraft(currentDraftKey !== savedDraftKey, isSubmitting);
   const existingParticipant = normalizedName
     ? participantsData.find((participant) => participant.name === normalizedName) ?? null
     : null;
@@ -265,9 +269,12 @@ export default function EventPage() {
       return;
     }
 
-    setTimeSlots(
-      existingParticipant.timeSlots.map((slot) => ({ ...slot, id: crypto.randomUUID() }))
-    );
+    const loadedSlots = existingParticipant.timeSlots.map((slot) => ({
+      ...slot,
+      id: crypto.randomUUID(),
+    }));
+    setTimeSlots(loadedSlots);
+    setSavedDraftKey(createResponseDraftKey(userName, loadedSlots));
     setSlotErrors({});
     setHasSavedResponse(false);
     setNotice({
@@ -367,6 +374,7 @@ export default function EventPage() {
         return;
       }
 
+      setSavedDraftKey(createResponseDraftKey(normalizedName, submittedSlots));
       setHasSavedResponse(true);
       const submittedParticipant = {
         id: existingParticipant?.id ?? crypto.randomUUID(),

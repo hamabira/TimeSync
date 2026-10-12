@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import Script from "next/script";
 import { INSTALL_CAPTURE_SCRIPT } from "@/lib/pwa-install-capture";
-import { PwaInstallProvider } from "@/components/pwa-install-prompt";
+import { PwaInstallProvider, PwaRuntimeNotices } from "@/components/pwa-install-prompt";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
@@ -73,6 +73,7 @@ export default function RootLayout({
             </div>
           </header>
           <main className="flex-1 container mx-auto px-4 py-8">
+            <PwaRuntimeNotices />
             {children}
           </main>
           <footer className="border-t-2 border-slate-200 bg-white py-6">
