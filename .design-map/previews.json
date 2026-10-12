@@ -41,6 +41,14 @@
         "storyUrl": "http://127.0.0.1:6007/?path=/story/review-current-event--refresh-failed",
         "captureSource": "storybook",
         "timestamp": "2026-10-12T06:31:22.142271+00:00"
+      },
+      {
+        "storyId": "review-pwa-experience--home-screen",
+        "label": "PWA · 追加案内の部品（390px）",
+        "image": "screenshots/pwa-install-implemented.png",
+        "storyUrl": "http://127.0.0.1:6007/?path=/story/review-pwa-experience--home-screen",
+        "captureSource": "storybook",
+        "timestamp": "2026-10-12T07:07:12.161879+00:00"
       }
     ]
   }
