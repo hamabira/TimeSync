@@ -13,6 +13,8 @@ const eslintConfig = defineConfig([
     ".vercel/**",
     "out/**",
     "build/**",
+    "storybook-static/**",
+    ".design-map/viewer/**",
     "next-env.d.ts",
   ]),
 ]);

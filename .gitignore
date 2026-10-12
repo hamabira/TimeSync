@@ -19,6 +19,9 @@
 
 # production
 /build
+/storybook-static/
+debug-storybook*.log
+.design-map/cache/
 
 # misc
 .DS_Store

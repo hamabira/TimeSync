@@ -12,6 +12,8 @@
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "start": "next start",
+    "storybook": "storybook dev --host 127.0.0.1 --port 6006",
+    "build-storybook": "storybook build",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "lint": "eslint"
   },
@@ -33,6 +35,8 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260501.1",
+    "@storybook/addon-a11y": "10.6.1",
+    "@storybook/nextjs-vite": "10.6.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -41,6 +45,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "storybook": "10.6.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.87.0"

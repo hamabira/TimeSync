@@ -1,0 +1,7 @@
+version: 1
+project:
+  name: akimatch
+
+# Add only meaning that cannot be derived reliably from code.
+nodes: []
+edges: []

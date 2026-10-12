@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Design Map</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">⌘</span><span>Design Map</span></div>
+      <div class="project"><strong id="project-name">Project</strong><span>code-derived map</span></div>
+      <div class="sync"><span class="sync-dot" aria-hidden="true"></span><span id="sync-status">Loading…</span></div>
+    </header>
+
+    <div class="shell">
+      <nav class="sidebar" id="map-sidebar" aria-label="Map views">
+        <div class="section-label">Views</div>
+        <div class="view-tabs" role="tablist" aria-label="Diagram type">
+          <button type="button" role="tab" aria-selected="true" data-view-target="flow"><span class="view-icon">↝</span><span>画面フロー</span><small data-count="flow">0</small></button>
+          <button type="button" role="tab" aria-selected="false" data-view-target="preview"><span class="view-icon">▣</span><span>画面と依存関係</span><small data-count="preview">0</small></button>
+          <button type="button" role="tab" aria-selected="false" data-view-target="concept"><span class="view-icon">◎</span><span>Concepts</span><small data-count="concept">0</small></button>
+          <button type="button" role="tab" aria-selected="false" data-view-target="erd"><span class="view-icon">▤</span><span>Data model</span><small data-count="erd">0</small></button>
+        </div>
+        <div class="section-label">線の意味</div>
+        <div class="legend"><span class="edge-legend-swatch solid" aria-hidden="true"></span><span class="legend-copy"><strong>実線</strong><small>コードから直接抽出、または手動登録した接続</small></span></div>
+        <div class="legend"><span class="edge-legend-swatch dashed" aria-hidden="true"></span><span class="legend-copy"><strong>点線</strong><small>コードを辿って推定した接続（共通Footerなど）</small></span></div>
+        <div class="section-label">ホバー / フォーカス</div>
+        <div class="legend"><span class="edge-legend-swatch outgoing" aria-hidden="true"></span>出る線: 紫</div>
+        <div class="legend"><span class="edge-legend-swatch incoming" aria-hidden="true"></span>入る線: 青</div>
+      </nav>
+
+      <main class="workspace">
+        <div class="toolbar" id="graph-toolbar">
+          <div class="view-heading"><strong id="view-title">Screen flow</strong><span id="view-meta">0 nodes · 0 relationships</span></div>
+          <div class="toolbar-spacer"></div>
+          <span class="relations-lock"><span aria-hidden="true">🔒</span> Relations locked</span>
+          <button class="toolbar-button" id="auto-arrange" type="button" title="画面フローを関係に沿って上から自動配置します"><span aria-hidden="true">✦</span> 自動配置</button>
+          <div class="zoom-controls" role="group" aria-label="表示倍率">
+            <button class="zoom-button" id="zoom-out" type="button" aria-label="縮小" title="縮小">−</button>
+            <output class="zoom-level" id="zoom-level" aria-live="polite">100%</output>
+            <button class="zoom-button zoom-reset" id="zoom-reset" type="button" aria-label="表示倍率を100%に戻す" title="表示倍率を100%に戻す">100%</button>
+            <button class="zoom-button" id="zoom-in" type="button" aria-label="拡大" title="拡大">+</button>
+          </div>
+        </div>
+        <div class="workspace-body">
+          <div class="workspace-rail workspace-rail-left">
+            <button class="workspace-panel-toggle" id="toggle-sidebar" type="button" aria-controls="map-sidebar" aria-expanded="true" aria-label="メニューを隠す" title="メニューを隠す">
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+            </button>
+          </div>
+          <div class="workspace-content">
+            <div class="workspace-notices"><div class="save-status" id="save-status" aria-live="polite"><span id="save-status-text"></span><button id="retry-save" class="save-retry" type="button" hidden>再試行</button></div></div>
+        <section class="screen-workspace" id="screen-workspace" aria-label="Screen preview" hidden>
+          <div class="screen-toolbar">
+            <label for="preview-screen-select">画面
+              <select id="preview-screen-select"></select>
+            </label>
+            <label for="preview-state-select">状態
+              <select id="preview-state-select"></select>
+            </label>
+            <div class="preview-mode" role="group" aria-label="Preview mode">
+              <button type="button" data-preview-mode="screenshot" aria-pressed="true">スクショ</button>
+              <button type="button" data-preview-mode="storybook" aria-pressed="false">実画面</button>
+            </div>
+          </div>
+          <div class="screen-stage" id="screen-stage">
+            <div class="screen-screenshot" id="screen-screenshot">
+              <button class="screen-image-link" id="screen-image-link" type="button" aria-haspopup="dialog" aria-label="画像を拡大" hidden>
+                <img id="screen-image" alt="">
+              </button>
+              <div class="screen-preview-empty" id="screen-preview-empty">この画面のプレビューは未登録</div>
+              <div class="screen-preview-caption" id="screen-preview-caption"></div>
+            </div>
+            <div class="screen-live" id="screen-live" hidden>
+              <div class="screen-live-note">Storybook・固定データ</div>
+              <iframe id="screen-storybook-frame" title="Storybook screen preview" referrerpolicy="no-referrer" hidden></iframe>
+              <div class="screen-live-fallback" id="screen-live-fallback" hidden></div>
+              <a class="storybook-link" id="screen-storybook-link" target="_blank" rel="noopener noreferrer" hidden>Storybookで開く ↗</a>
+            </div>
+          </div>
+        </section>
+        <div class="canvas" id="canvas" hidden>
+          <div class="graph-world" id="graph-world">
+            <div class="graph-scene" id="graph-scene">
+              <svg class="connections" id="connections" aria-hidden="true">
+                <defs>
+                  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z"></path></marker>
+                </defs>
+                <g id="edge-layer"></g>
+              </svg>
+              <div class="node-layer" id="node-layer"></div>
+            </div>
+          </div>
+          <div class="empty-state" id="empty-state" hidden>
+            <strong>No entities in this view yet</strong>
+            <span>Add source files or manual entries, then run design-map update.</span>
+          </div>
+          <div class="evidence-status" id="evidence-status">✓ Relationships include source evidence</div>
+        </div>
+          </div>
+          <div class="workspace-rail workspace-rail-right">
+            <button class="workspace-panel-toggle" id="toggle-inspector" type="button" aria-controls="node-inspector" aria-expanded="true" aria-label="詳細を隠す" title="詳細を隠す">
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></svg>
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <aside class="inspector" id="node-inspector" aria-live="polite">
+        <div class="inspector-kicker" id="inspector-kind">Nothing selected</div>
+        <h1 id="inspector-title">Select a node</h1>
+        <p id="inspector-description">Choose a node to inspect its source and relationships.</p>
+        <dl>
+          <div><dt>Source evidence</dt><dd id="inspector-source">—</dd></div>
+          <div><dt>Confidence</dt><dd id="inspector-confidence">—</dd></div>
+          <div><dt>Layout position</dt><dd id="inspector-layout">—</dd></div>
+          <div><dt>Relationships</dt><dd id="inspector-relations">—</dd></div>
+        </dl>
+        <section class="inspector-section" id="screen-preview-panel" hidden>
+          <div class="inspector-section-title">Screen preview</div>
+          <label class="inspector-control" for="inspector-preview-state">State
+            <select id="inspector-preview-state"></select>
+          </label>
+          <figure class="preview-figure">
+            <button class="preview-image-link" id="inspector-preview-link" type="button" aria-haspopup="dialog" aria-label="画像を拡大" hidden>
+              <img id="inspector-preview-image" alt="" hidden>
+            </button>
+            <div class="preview-empty" id="inspector-preview-empty">No screenshot attached</div>
+            <figcaption id="inspector-preview-caption"></figcaption>
+          </figure>
+          <a class="storybook-link" id="inspector-storybook-link" target="_blank" rel="noopener noreferrer" hidden>Open in Storybook ↗</a>
+        </section>
+        <section class="inspector-section" id="dependency-panel" hidden>
+          <div class="inspector-section-title">依存関係</div>
+          <h2 class="dependency-screen-title" id="dependency-screen-title">—</h2>
+          <details class="dependency-source">
+            <summary>ソース情報</summary>
+            <code id="dependency-source-path">—</code>
+          </details>
+          <label class="inspector-control" for="dependency-depth">依存の深さ
+            <select id="dependency-depth">
+              <option value="1" selected>1（直接）</option>
+              <option value="2">2（その先まで）</option>
+            </select>
+          </label>
+          <label class="inspector-check"><input id="dependency-usages" type="checkbox"> この依存先の使用元</label>
+          <div class="dependency-tree" id="dependency-tree" aria-live="polite"></div>
+        </section>
+      </aside>
+    </div>
+  </div>
+  <dialog class="preview-lightbox" id="preview-lightbox" aria-labelledby="preview-lightbox-title">
+    <div class="lightbox-panel">
+      <div class="lightbox-toolbar">
+        <h2 id="preview-lightbox-title">画像を拡大</h2>
+        <button class="lightbox-close" id="preview-lightbox-close" type="button">閉じる</button>
+      </div>
+      <figure class="lightbox-figure">
+        <img id="preview-lightbox-image" alt="">
+        <figcaption id="preview-lightbox-caption"></figcaption>
+      </figure>
+    </div>
+  </dialog>
+  <script src="./dagre.min.js"></script>
+  <script src="./layout.js"></script>
+  <script src="./zoom.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -147,3 +147,24 @@ Codex は作業時に以下を守る。
 - Next.js + Cloudflare D1 の実装チェックリスト。
 - 日程調整アプリの UX レビュー手順。
 - MVP 改善を自走するためのプロダクト実装手順。
+
+# UI 提案と承認の進め方
+
+- ユーザーの指定により、ユーザー向け UI/UX の変更は、既存画面と改善モックを比較して提案し、案が承認されてからアプリへ実装する。
+- 承認前は Storybook の比較用 stories とモックを作り、アプリの画面へ組み込まない。承認は Storybook の基盤導入とは分けて扱う。
+- 比較には最新 main の既存コンポーネントと共通のサンプルデータを使う。再回答、入力エラー、回答なしの状態も確認できるようにする。
+- 承認された案と対象 Issue を記録し、別ブランチ・PRで実装と検証を進める。新しい案や対象範囲の変更は改めて提案する。
+- Storybook はこのアプリの画面確認に使う。個人の Design System（デザインシステム）とは別のものとして扱う。公開・外部ホスティングは明示的な依頼がある場合だけ行う。
+- PWA はホーム画面への追加を第一段階とし、オフライン表示・更新通知を別 Issue に分ける。利用者向けの導線もモックで提案してから実装する。
+
+<!-- design-map:start -->
+## Design Map
+
+Keep `.design-map/generated/graph.json` synchronized with the repository.
+
+- After changing routes, screens, APIs, database schemas, models, imports, package dependencies, or product relationships, run `python3 ~/.codex/skills/design-map/scripts/design_map.py update --changed .`.
+- Store Storybook screen-state previews with `attach-preview`; refresh the graph with `update` afterward.
+- Before finishing related work, run `python3 ~/.codex/skills/design-map/scripts/design_map.py check .`.
+- Do not hand-edit `.design-map/generated/graph.json` or files under `.design-map/viewer/`.
+- Manual product meaning belongs in `.design-map/manifest.yaml`; screen previews belong in `.design-map/previews.json`; dragged positions belong only in `.design-map/generated/layouts.json`.
+<!-- design-map:end -->
