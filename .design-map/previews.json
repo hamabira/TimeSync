@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "screens": {
+    "screen:e-id:25451780": [
+      {
+        "storyId": "review-current-event--default",
+        "label": "Storybook: 現行UI（架空データ）",
+        "image": "screenshots/event-current.png",
+        "storyUrl": "http://127.0.0.1:6007/?path=/story/review-current-event--default",
+        "captureSource": "storybook",
+        "timestamp": "2026-10-12T05:17:41.114292+00:00"
+      },
+      {
+        "storyId": "review-proposed-event--same-page",
+        "label": "承認前モックA: 既存を活かす",
+        "image": "screenshots/event-proposal-a.png",
+        "storyUrl": "http://127.0.0.1:6007/?path=/story/review-proposed-event--same-page",
+        "captureSource": "storybook",
+        "timestamp": "2026-10-12T05:17:41.182507+00:00"
+      },
+      {
+        "storyId": "review-proposed-event--separate-views",
+        "label": "承認前モックB: 回答と結果を分ける",
+        "image": "screenshots/event-proposal-b.png",
+        "storyUrl": "http://127.0.0.1:6007/?path=/story/review-proposed-event--separate-views",
+        "captureSource": "storybook",
+        "timestamp": "2026-10-12T05:17:41.248736+00:00"
+      }
+    ]
+  }
+}
