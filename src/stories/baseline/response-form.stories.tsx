@@ -5,7 +5,7 @@ import { ResponseForm } from "@/app/e/[id]/components/response-form";
 import type { NoticeState, TimeSlotDraft, TimeSlotField } from "@/app/e/[id]/types";
 import { dateOnlyToDate, dateToDateOnly } from "@/lib/date-only";
 import { MAX_RESPONSE_SLOTS, normalizeParticipantName, parseTimeRange } from "@/lib/scheduling";
-import { fixtureEvent } from "../fixtures";
+import { fixtureEvent, fixtureParticipants } from "../fixtures";
 
 type ResponseFormReviewProps = {
   state: "success" | "error";
@@ -13,31 +13,36 @@ type ResponseFormReviewProps = {
 
 function ResponseFormReview({ state }: ResponseFormReviewProps) {
   const demoDate = "2026-10-14";
-  const [userName, setUserName] = useState(state === "success" ? "" : "さくら");
-  const [selectedDates, setSelectedDates] = useState(
-    state === "success" ? [] : [dateOnlyToDate(demoDate)]
-  );
+  const [userName, setUserName] = useState("さくら");
   const [timeSlots, setTimeSlots] = useState<TimeSlotDraft[]>(
-    state === "success"
-      ? []
-      : [
-          {
-            id: "response-form-error-slot",
-            date: demoDate,
-            startTime: "21:00",
-            endTime: "19:00",
-          },
-        ]
+    [
+      {
+        id: "response-form-review-slot",
+        date: demoDate,
+        startTime: state === "success" ? "19:00" : "21:00",
+        endTime: state === "success" ? "21:00" : "19:00",
+      },
+    ]
   );
   const [notice, setNotice] = useState<NoticeState>(
     state === "success"
-      ? { type: "success", message: "さくらさんの希望日程を保存しました。" }
-      : { type: "error", message: "開始時刻は終了時刻より前にしてください。" }
+      ? { type: "success", message: "Storybook内の回答表示を保存しました。入力内容は残っています。" }
+      : { type: "error", message: "赤く表示した時間帯を確認してください。入力内容は残っています。" }
   );
+  const existingParticipant = fixtureParticipants.find((participant) => participant.name === userName) ?? null;
+  const [slotErrors, setSlotErrors] = useState<Record<string, string>>(
+    state === "success" ? {} : { "response-form-review-slot": "終了時刻は開始時刻より後にしてください。" }
+  );
+  const [hasSavedResponse, setHasSavedResponse] = useState(state === "success");
+  const [nameError, setNameError] = useState<string | null>(null);
 
   const selectedDateKeys = useMemo(
     () => [...new Set(timeSlots.map((slot) => slot.date))].sort(),
     [timeSlots]
+  );
+  const selectedDates = useMemo(
+    () => selectedDateKeys.map(dateOnlyToDate),
+    [selectedDateKeys]
   );
 
   const handleSelectDates = (dates: Date[] | undefined) => {
@@ -55,7 +60,6 @@ function ResponseFormReview({ state }: ResponseFormReviewProps) {
       }));
 
     setTimeSlots([...keptSlots, ...additions]);
-    setSelectedDates(dates ?? []);
     setNotice(null);
   };
 
@@ -78,37 +82,65 @@ function ResponseFormReview({ state }: ResponseFormReviewProps) {
     setTimeSlots((previous) =>
       previous.map((slot) => (slot.id === id ? { ...slot, [field]: value } : slot))
     );
+    setSlotErrors((previous) => {
+      const next = { ...previous };
+      delete next[id];
+      return next;
+    });
+    setNotice(null);
   };
 
   const handleRemoveTimeSlot = (id: string) => {
     setTimeSlots((previous) => previous.filter((slot) => slot.id !== id));
+    setSlotErrors((previous) => {
+      const next = { ...previous };
+      delete next[id];
+      return next;
+    });
+    setNotice(null);
   };
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
     const normalizedName = normalizeParticipantName(userName);
+    const invalidSlots = timeSlots.filter((slot) => !parseTimeRange(slot.startTime, slot.endTime));
+    setSlotErrors(Object.fromEntries(invalidSlots.map((slot) => [slot.id, "終了時刻は開始時刻より後にしてください。"])));
 
     if (!normalizedName) {
-      setNotice({ type: "error", message: "お名前を入力してください。" });
+      setNameError("お名前を入力してください。");
+      setNotice(null);
       return;
     }
 
+    setNameError(null);
     if (timeSlots.length === 0) {
       setNotice({ type: "error", message: "時間帯を1件以上選択してください。" });
       return;
     }
 
-    if (timeSlots.some((slot) => !parseTimeRange(slot.startTime, slot.endTime))) {
-      setNotice({ type: "error", message: "開始時刻は終了時刻より前にしてください。" });
+    if (invalidSlots.length > 0) {
+      setNotice({ type: "error", message: "赤く表示した時間帯を確認してください。入力内容は残っています。" });
       return;
     }
 
-    setNotice({ type: "success", message: `${normalizedName}さんの希望日程を保存しました。` });
+    setHasSavedResponse(true);
+    setNotice({ type: "success", message: `Storybook内の${normalizedName}さんの回答表示を保存しました。入力内容は残っています。` });
+  };
+
+  const handleLoadPreviousResponse = () => {
+    if (!existingParticipant) return;
+    setTimeSlots(existingParticipant.timeSlots.map((slot) => ({ ...slot, id: crypto.randomUUID() })));
+    setSlotErrors({});
+    setHasSavedResponse(false);
+    setNotice({ type: "success", message: "前回の回答を読み込みました。入力内容が置き換わりました。" });
   };
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-2xl">
+        <p className="mb-4 rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-600">
+          Storybookプレビュー: 送信内容はこの画面の表示だけに反映されます。
+        </p>
         <ResponseForm
           eventStartDate={dateOnlyToDate(fixtureEvent.startDate)}
           eventEndDate={dateOnlyToDate(fixtureEvent.endDate)}
@@ -117,13 +149,23 @@ function ResponseFormReview({ state }: ResponseFormReviewProps) {
           timeSlots={timeSlots}
           userName={userName}
           notice={notice}
+          slotErrors={slotErrors}
+          nameError={nameError}
+          existingParticipant={existingParticipant}
+          hasSavedResponse={hasSavedResponse}
           isSubmitting={false}
           onSubmit={handleSubmit}
           onSelectDates={handleSelectDates}
           onAddTimeSlot={handleAddTimeSlot}
           onUpdateTimeSlot={handleUpdateTimeSlot}
           onRemoveTimeSlot={handleRemoveTimeSlot}
-          onUserNameChange={setUserName}
+          onUserNameChange={(value) => {
+            setUserName(value);
+            setNameError(null);
+            setNotice(null);
+            setHasSavedResponse(false);
+          }}
+          onLoadPreviousResponse={handleLoadPreviousResponse}
         />
       </div>
     </div>

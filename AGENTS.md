@@ -46,7 +46,7 @@ MVP を直接シンプルにできる場合を除き、大きな作り直しは�
 
 # 技術制約
 
-- このプロジェクトは Next.js 16.2.4 を使っている。Next.js の API、ルーティング、Server Actions、runtime config、ファイル規約を変更する前に、必ず `node_modules/next/dist/docs/` の関連ドキュメントを読む。
+- このプロジェクトは Next.js 16.2.12 を使っている。Next.js の API、ルーティング、Server Actions、runtime config、ファイル規約を変更する前に、必ず `node_modules/next/dist/docs/` の関連ドキュメントを読む。
 - アプリは Cloudflare Pages/Workers と D1 を前提にする。
 - DB アクセスは Drizzle と既存の `getDb` helper を使う。
 - `export const runtime = "edge"` との互換性を意識する。
