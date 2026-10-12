@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { CalendarAvailabilityHeatmap } from "@/components/calendar-availability-heatmap";
 import { TimeBandHeatmap } from "@/components/time-band-heatmap";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { getEventWithParticipants, submitResponse } from "@/app/actions";
 import {
   BestCandidateSummary,
@@ -277,7 +278,7 @@ export default function EventPage() {
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(window.location.origin + window.location.pathname);
       setCopyState("copied");
       window.setTimeout(() => setCopyState("idle"), 1800);
     } catch (error) {
@@ -471,6 +472,8 @@ export default function EventPage() {
         copyState={copyState}
         onCopyLink={handleCopyLink}
       />
+
+      <PwaInstallPrompt />
 
       <BestCandidateSummary
         candidate={candidates[0] ?? null}

@@ -8,6 +8,8 @@ Do not place `icon.png`, `apple-icon.png`, `opengraph-image.png`, `twitter-image
 | File | Purpose | Recommended size |
 | --- | --- | --- |
 | `icon.png` | Browser favicon and app icon referenced from `metadata.icons.icon` | 1024x1024 PNG |
+| `icon-192.png` | Standard PWA install icon referenced from `app/manifest.ts` | 192x192 PNG |
+| `icon-512.png` | Standard PWA install icon referenced from `app/manifest.ts` | 512x512 PNG |
 | `apple-icon.png` | iOS home screen icon referenced from `metadata.icons.apple` | 1024x1024 PNG |
 | `opengraph-image.png` | URL share preview image referenced from `metadata.openGraph.images` | 1200x630 PNG |
 | `twitter-image.png` | X/Twitter card image referenced from `metadata.twitter.images` | 1200x630 PNG |

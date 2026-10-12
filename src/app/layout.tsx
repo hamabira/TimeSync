@@ -1,9 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import Script from "next/script";
+import { INSTALL_CAPTURE_SCRIPT } from "@/lib/pwa-install-capture";
+import { PwaInstallProvider } from "@/components/pwa-install-prompt";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const shareImageVersion = "20260517";
+
+export const viewport: Viewport = {
+  themeColor: "#2563eb",
+};
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
@@ -12,6 +19,11 @@ export const metadata: Metadata = {
   icons: {
     icon: "/brand/icon.png",
     apple: "/brand/apple-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "AkiMatch",
+    statusBarStyle: "default",
   },
   openGraph: {
     title: "AkiMatch | 空き時間が重なるところを見つける日程調整アプリ",
@@ -51,29 +63,32 @@ export default function RootLayout({
             'Inter, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif',
         }}
       >
-        <header className="sticky top-0 z-50 w-full border-b-2 border-slate-200 bg-white/80 backdrop-blur-md">
-          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">AkiMatch</span>
+        <Script id="pwa-install-capture" strategy="beforeInteractive">{INSTALL_CAPTURE_SCRIPT}</Script>
+        <PwaInstallProvider>
+          <header className="sticky top-0 z-50 w-full border-b-2 border-slate-200 bg-white/80 backdrop-blur-md">
+            <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">AkiMatch</span>
+              </div>
             </div>
-          </div>
-        </header>
-        <main className="flex-1 container mx-auto px-4 py-8">
-          {children}
-        </main>
-        <footer className="border-t-2 border-slate-200 bg-white py-6">
-          <div className="container mx-auto flex flex-col items-center justify-center gap-3 px-4 text-center text-sm text-slate-500 sm:flex-row sm:justify-between">
-            <div>&copy; {new Date().getFullYear()} AkiMatch. All rights reserved.</div>
-            <nav aria-label="法務リンク" className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-              <Link className="font-medium text-slate-600 transition-colors hover:text-blue-700" href="/terms">
-                利用規約
-              </Link>
-              <Link className="font-medium text-slate-600 transition-colors hover:text-blue-700" href="/privacy">
-                プライバシーポリシー
-              </Link>
-            </nav>
-          </div>
-        </footer>
+          </header>
+          <main className="flex-1 container mx-auto px-4 py-8">
+            {children}
+          </main>
+          <footer className="border-t-2 border-slate-200 bg-white py-6">
+            <div className="container mx-auto flex flex-col items-center justify-center gap-3 px-4 text-center text-sm text-slate-500 sm:flex-row sm:justify-between">
+              <div>&copy; {new Date().getFullYear()} AkiMatch. All rights reserved.</div>
+              <nav aria-label="法務リンク" className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+                <Link className="font-medium text-slate-600 transition-colors hover:text-blue-700" href="/terms">
+                  利用規約
+                </Link>
+                <Link className="font-medium text-slate-600 transition-colors hover:text-blue-700" href="/privacy">
+                  プライバシーポリシー
+                </Link>
+              </nav>
+            </div>
+          </footer>
+        </PwaInstallProvider>
       </body>
     </html>
   );

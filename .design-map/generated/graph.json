@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-12T06:31:22.289464+00:00",
+  "generatedAt": "2026-10-12T07:07:12.490235+00:00",
   "project": {
     "name": "akimatch",
     "root": "."
   },
   "inputs": {
     "manifestHash": "f5895deaaf85fb905e7ef6de6b3d754b1cf283c3d7bda6b352e2b823de4b05aa",
-    "previewsHash": "256cd74ca1f2ca9aba01073930cd263debf2860465a95b9e7dfff1ee58f9ce0f",
+    "previewsHash": "0c63dec75201ce4cc3f6891f4c99aa684a02f42f225c98e15332850c31c61dcd",
     "importConfigHash": "9584bb8896841a83f51dc45b2981a104c479713f2c1da7046aa247e6e23ae58e"
   },
   "nodes": [
@@ -705,6 +705,19 @@
       "path": ".storybook/main.ts"
     },
     {
+      "id": "file:src-app-manifest-ts:279032e7",
+      "kind": "file",
+      "label": "manifest.ts",
+      "description": "Source file src/app/manifest.ts",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "src/app/manifest.ts",
+        "line": null
+      },
+      "path": "src/app/manifest.ts"
+    },
+    {
       "id": "file:next-config-ts:a0c2fdd2",
       "kind": "file",
       "label": "next.config.ts",
@@ -885,6 +898,45 @@
         "line": null
       },
       "path": "src/stories/proposals/pwa-experience.stories.tsx"
+    },
+    {
+      "id": "file:tests-pwa-install-capture-test-mjs:21736349",
+      "kind": "file",
+      "label": "pwa-install-capture.test.mjs",
+      "description": "Source file tests/pwa-install-capture.test.mjs",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "tests/pwa-install-capture.test.mjs",
+        "line": null
+      },
+      "path": "tests/pwa-install-capture.test.mjs"
+    },
+    {
+      "id": "file:src-lib-pwa-install-capture-ts:4e2fd994",
+      "kind": "file",
+      "label": "pwa-install-capture.ts",
+      "description": "Source file src/lib/pwa-install-capture.ts",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "src/lib/pwa-install-capture.ts",
+        "line": null
+      },
+      "path": "src/lib/pwa-install-capture.ts"
+    },
+    {
+      "id": "file:src-components-pwa-install-prompt-tsx:78884173",
+      "kind": "file",
+      "label": "pwa-install-prompt.tsx",
+      "description": "Source file src/components/pwa-install-prompt.tsx",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "src/components/pwa-install-prompt.tsx",
+        "line": null
+      },
+      "path": "src/components/pwa-install-prompt.tsx"
     },
     {
       "id": "file:src-stories-baseline-response-form-stories-tsx:7fbc4581",
@@ -1400,6 +1452,19 @@
       "external": true
     },
     {
+      "id": "package:node-vm:e83aa31f",
+      "kind": "package",
+      "label": "node:vm",
+      "description": "Imported package node:vm",
+      "origin": "inferred",
+      "confidence": 0.85,
+      "source": {
+        "file": "tests/pwa-install-capture.test.mjs",
+        "line": null
+      },
+      "external": true
+    },
+    {
       "id": "package:react:6b810c90",
       "kind": "package",
       "label": "react",
@@ -1606,6 +1671,14 @@
           "storyUrl": "http://127.0.0.1:6007/?path=/story/review-current-event--refresh-failed",
           "captureSource": "storybook",
           "timestamp": "2026-10-12T06:31:22.142271+00:00"
+        },
+        {
+          "storyId": "review-pwa-experience--home-screen",
+          "label": "PWA · 追加案内の部品（390px）",
+          "image": "screenshots/pwa-install-implemented.png",
+          "storyUrl": "http://127.0.0.1:6007/?path=/story/review-pwa-experience--home-screen",
+          "captureSource": "storybook",
+          "timestamp": "2026-10-12T07:07:12.161879+00:00"
         }
       ]
     },
@@ -3275,7 +3348,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 17
+          "line": 18
         }
       ],
       "metadata": {
@@ -3294,7 +3367,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 18
+          "line": 19
         }
       ],
       "metadata": {
@@ -3313,7 +3386,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 23
+          "line": 24
         }
       ],
       "metadata": {
@@ -3332,7 +3405,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 24
+          "line": 25
         }
       ],
       "metadata": {
@@ -3351,7 +3424,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 25
+          "line": 26
         }
       ],
       "metadata": {
@@ -3376,6 +3449,25 @@
       "metadata": {
         "resolution": "file",
         "specifier": "@/components/calendar-availability-heatmap"
+      }
+    },
+    {
+      "id": "edge:file-src-app-e-id-page-tsx-822fb796-imports-file-src-components-pwa-inst:a4deb8b4",
+      "from": "file:src-app-e-id-page-tsx:822fb796",
+      "to": "file:src-components-pwa-install-prompt-tsx:78884173",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/app/e/[id]/page.tsx",
+          "line": 17
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/components/pwa-install-prompt"
       }
     },
     {
@@ -3446,7 +3538,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 26
+          "line": 27
         }
       ],
       "metadata": {
@@ -3465,7 +3557,7 @@
       "evidence": [
         {
           "file": "src/app/e/[id]/page.tsx",
-          "line": 31
+          "line": 32
         }
       ],
       "metadata": {
@@ -3563,12 +3655,50 @@
       "evidence": [
         {
           "file": "src/app/layout.tsx",
-          "line": 4
+          "line": 7
         }
       ],
       "metadata": {
         "resolution": "file",
         "specifier": "./globals.css"
+      }
+    },
+    {
+      "id": "edge:file-src-app-layout-tsx-cfb47de6-imports-file-src-components-pwa-install:3d217262",
+      "from": "file:src-app-layout-tsx:cfb47de6",
+      "to": "file:src-components-pwa-install-prompt-tsx:78884173",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/app/layout.tsx",
+          "line": 5
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/components/pwa-install-prompt"
+      }
+    },
+    {
+      "id": "edge:file-src-app-layout-tsx-cfb47de6-imports-file-src-lib-pwa-install-captur:f161c920",
+      "from": "file:src-app-layout-tsx:cfb47de6",
+      "to": "file:src-lib-pwa-install-capture-ts:4e2fd994",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/app/layout.tsx",
+          "line": 4
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/lib/pwa-install-capture"
       }
     },
     {
@@ -3582,7 +3712,7 @@
       "evidence": [
         {
           "file": "src/app/layout.tsx",
-          "line": 3
+          "line": 6
         }
       ],
       "metadata": {
@@ -3601,12 +3731,32 @@
       "evidence": [
         {
           "file": "src/app/layout.tsx",
-          "line": 2
+          "line": 3
         }
       ],
       "metadata": {
         "resolution": "package",
-        "specifier": "next/link",
+        "specifier": "next/script",
+        "package": "next"
+      }
+    },
+    {
+      "id": "edge:file-src-app-manifest-ts-279032e7-imports-package-next-edee9402-src-app-:a65ace25",
+      "from": "file:src-app-manifest-ts:279032e7",
+      "to": "package:next:edee9402",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/app/manifest.ts",
+          "line": 1
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "next",
         "package": "next"
       }
     },
@@ -4260,6 +4410,84 @@
       "evidence": [
         {
           "file": "src/components/date-range-picker.tsx",
+          "line": 3
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "react",
+        "package": "react"
+      }
+    },
+    {
+      "id": "edge:file-src-components-pwa-install-prompt-tsx-78884173-imports-file-src-com:e1c58740",
+      "from": "file:src-components-pwa-install-prompt-tsx:78884173",
+      "to": "file:src-components-ui-button-tsx:ca8cd720",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/components/pwa-install-prompt.tsx",
+          "line": 15
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/components/ui/button"
+      }
+    },
+    {
+      "id": "edge:file-src-components-pwa-install-prompt-tsx-78884173-imports-file-src-lib:1453980d",
+      "from": "file:src-components-pwa-install-prompt-tsx:78884173",
+      "to": "file:src-lib-pwa-install-capture-ts:4e2fd994",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/components/pwa-install-prompt.tsx",
+          "line": 13
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/lib/pwa-install-capture"
+      }
+    },
+    {
+      "id": "edge:file-src-components-pwa-install-prompt-tsx-78884173-imports-package-luci:b93fadf9",
+      "from": "file:src-components-pwa-install-prompt-tsx:78884173",
+      "to": "package:lucide-react:0cab62d1",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/components/pwa-install-prompt.tsx",
+          "line": 14
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "lucide-react",
+        "package": "lucide-react"
+      }
+    },
+    {
+      "id": "edge:file-src-components-pwa-install-prompt-tsx-78884173-imports-package-reac:f0400467",
+      "from": "file:src-components-pwa-install-prompt-tsx:78884173",
+      "to": "package:react:6b810c90",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/components/pwa-install-prompt.tsx",
           "line": 3
         }
       ],
@@ -5957,6 +6185,25 @@
       }
     },
     {
+      "id": "edge:file-src-stories-proposals-pwa-experience-stories-tsx-fe413da8-imports-f:013fab64",
+      "from": "file:src-stories-proposals-pwa-experience-stories-tsx:fe413da8",
+      "to": "file:src-components-pwa-install-prompt-tsx:78884173",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/proposals/pwa-experience.stories.tsx",
+          "line": 5
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/components/pwa-install-prompt"
+      }
+    },
+    {
       "id": "edge:file-src-stories-proposals-pwa-experience-stories-tsx-fe413da8-imports-f:58f975d8",
       "from": "file:src-stories-proposals-pwa-experience-stories-tsx:fe413da8",
       "to": "file:src-components-ui-button-tsx:ca8cd720",
@@ -5986,7 +6233,7 @@
       "evidence": [
         {
           "file": "src/stories/proposals/pwa-experience.stories.tsx",
-          "line": 5
+          "line": 6
         }
       ],
       "metadata": {
@@ -6487,6 +6734,85 @@
       }
     },
     {
+      "id": "edge:file-tests-pwa-install-capture-test-mjs-21736349-imports-file-src-lib-pw:1759a7d3",
+      "from": "file:tests-pwa-install-capture-test-mjs:21736349",
+      "to": "file:src-lib-pwa-install-capture-ts:4e2fd994",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-install-capture.test.mjs",
+          "line": 4
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "../src/lib/pwa-install-capture.ts"
+      }
+    },
+    {
+      "id": "edge:file-tests-pwa-install-capture-test-mjs-21736349-imports-package-node-as:61016441",
+      "from": "file:tests-pwa-install-capture-test-mjs:21736349",
+      "to": "package:node-assert:f1a93ba5",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-install-capture.test.mjs",
+          "line": 1
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:assert/strict",
+        "package": "node:assert"
+      }
+    },
+    {
+      "id": "edge:file-tests-pwa-install-capture-test-mjs-21736349-imports-package-node-te:50b13a36",
+      "from": "file:tests-pwa-install-capture-test-mjs:21736349",
+      "to": "package:node-test:a8c66a4f",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-install-capture.test.mjs",
+          "line": 2
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:test",
+        "package": "node:test"
+      }
+    },
+    {
+      "id": "edge:file-tests-pwa-install-capture-test-mjs-21736349-imports-package-node-vm:5ebd5374",
+      "from": "file:tests-pwa-install-capture-test-mjs:21736349",
+      "to": "package:node-vm:e83aa31f",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "tests/pwa-install-capture.test.mjs",
+          "line": 3
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:vm",
+        "package": "node:vm"
+      }
+    },
+    {
       "id": "edge:file-tests-scheduling-test-mjs-752efadf-imports-file-src-lib-scheduling-:fa589651",
       "from": "file:tests-scheduling-test-mjs:752efadf",
       "to": "file:src-lib-scheduling-ts:22aaaf7b",
@@ -6556,7 +6882,7 @@
       "evidence": [
         {
           "file": "src/app/layout.tsx",
-          "line": 71
+          "line": 85
         }
       ],
       "metadata": {
@@ -6576,7 +6902,7 @@
       "evidence": [
         {
           "file": "src/app/layout.tsx",
-          "line": 68
+          "line": 82
         }
       ],
       "metadata": {
