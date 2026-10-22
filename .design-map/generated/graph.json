@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-12T07:37:45.282017+00:00",
+  "generatedAt": "2026-10-22T13:33:28.410959+00:00",
   "project": {
     "name": "akimatch",
     "root": "."
@@ -131,6 +131,19 @@
         "line": null
       },
       "path": ".gitignore"
+    },
+    {
+      "id": "file:node-version:f6fdf232",
+      "kind": "file",
+      "label": ".node-version",
+      "description": "Source file .node-version",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": ".node-version",
+        "line": null
+      },
+      "path": ".node-version"
     },
     {
       "id": "file:drizzle-0000-ancient-sentinels-sql:48ef4f8a",
@@ -1473,7 +1486,7 @@
         "line": null
       },
       "external": true,
-      "version": "16.2.12"
+      "version": "16.4.1"
     },
     {
       "id": "package:lucide-react:0cab62d1",
@@ -1501,7 +1514,7 @@
         "line": null
       },
       "external": true,
-      "version": "16.2.12"
+      "version": "16.4.1"
     },
     {
       "id": "package:node-assert:f1a93ba5",
@@ -2311,7 +2324,7 @@
       "from": "package:local-akimatch:5590ce5a",
       "to": "package:eslint-config-next:327f0f3d",
       "kind": "depends_on",
-      "label": "16.2.12",
+      "label": "16.4.1",
       "origin": "extracted",
       "confidence": 1.0,
       "evidence": [
@@ -2359,7 +2372,7 @@
       "from": "package:local-akimatch:5590ce5a",
       "to": "package:next:edee9402",
       "kind": "depends_on",
-      "label": "16.2.12",
+      "label": "16.4.1",
       "origin": "extracted",
       "confidence": 1.0,
       "evidence": [
