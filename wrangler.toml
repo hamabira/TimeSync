@@ -1,4 +1,6 @@
 name = "akimatch"
+workers_dev = true
+routes = [{ pattern = "akimatch.imbeni.dev", custom_domain = true }]
 main = ".open-next/worker.js"
 compatibility_date = "2026-05-08"
 compatibility_flags = ["nodejs_compat"]
