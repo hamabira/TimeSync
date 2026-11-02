@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-02T02:22:21.876093+00:00",
+  "generatedAt": "2026-11-02T03:26:56.756651+00:00",
   "project": {
     "name": "akimatch",
     "root": "."
@@ -482,6 +482,19 @@
         "line": null
       },
       "path": "src/lib/date-only.ts"
+    },
+    {
+      "id": "file:src-stories-baseline-date-range-picker-stories-tsx:8d74155d",
+      "kind": "file",
+      "label": "date-range-picker.stories.tsx",
+      "description": "Source file src/stories/baseline/date-range-picker.stories.tsx",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "src/stories/baseline/date-range-picker.stories.tsx",
+        "line": null
+      },
+      "path": "src/stories/baseline/date-range-picker.stories.tsx"
     },
     {
       "id": "file:src-components-date-range-picker-tsx:008c363c",
@@ -4669,7 +4682,7 @@
       "evidence": [
         {
           "file": "src/components/date-range-picker.tsx",
-          "line": 18
+          "line": 9
         }
       ],
       "metadata": {
@@ -4688,7 +4701,7 @@
       "evidence": [
         {
           "file": "src/components/date-range-picker.tsx",
-          "line": 17
+          "line": 10
         }
       ],
       "metadata": {
@@ -4707,7 +4720,7 @@
       "evidence": [
         {
           "file": "src/components/date-range-picker.tsx",
-          "line": 19
+          "line": 11
         }
       ],
       "metadata": {
@@ -4726,7 +4739,7 @@
       "evidence": [
         {
           "file": "src/components/date-range-picker.tsx",
-          "line": 20
+          "line": 12
         }
       ],
       "metadata": {
@@ -4745,7 +4758,7 @@
       "evidence": [
         {
           "file": "src/components/date-range-picker.tsx",
-          "line": 29
+          "line": 20
         }
       ],
       "metadata": {
@@ -4764,7 +4777,7 @@
       "evidence": [
         {
           "file": "src/components/date-range-picker.tsx",
-          "line": 13
+          "line": 5
         }
       ],
       "metadata": {
@@ -4784,7 +4797,7 @@
       "evidence": [
         {
           "file": "src/components/date-range-picker.tsx",
-          "line": 15
+          "line": 7
         }
       ],
       "metadata": {
@@ -4804,7 +4817,7 @@
       "evidence": [
         {
           "file": "src/components/date-range-picker.tsx",
-          "line": 14
+          "line": 6
         }
       ],
       "metadata": {
@@ -6093,6 +6106,144 @@
         "resolution": "package",
         "specifier": "react",
         "package": "react"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-baseline-date-range-picker-stories-tsx-8d74155d-imports:e56dd615",
+      "from": "file:src-stories-baseline-date-range-picker-stories-tsx:8d74155d",
+      "to": "file:src-components-date-range-picker-tsx:008c363c",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/baseline/date-range-picker.stories.tsx",
+          "line": 7
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/components/date-range-picker"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-baseline-date-range-picker-stories-tsx-8d74155d-imports:611be6c5",
+      "from": "file:src-stories-baseline-date-range-picker-stories-tsx:8d74155d",
+      "to": "file:src-lib-date-range-ts:cff03895",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/baseline/date-range-picker.stories.tsx",
+          "line": 8
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/lib/date-range"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-baseline-date-range-picker-stories-tsx-8d74155d-imports:6c6145e2",
+      "from": "file:src-stories-baseline-date-range-picker-stories-tsx:8d74155d",
+      "to": "package:date-fns:c321bc86",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/baseline/date-range-picker.stories.tsx",
+          "line": 4
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "date-fns",
+        "package": "date-fns"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-baseline-date-range-picker-stories-tsx-8d74155d-imports:dd6d2a63",
+      "from": "file:src-stories-baseline-date-range-picker-stories-tsx:8d74155d",
+      "to": "package:react-day-picker:f36c1b74",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/baseline/date-range-picker.stories.tsx",
+          "line": 5
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "react-day-picker",
+        "package": "react-day-picker"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-baseline-date-range-picker-stories-tsx-8d74155d-imports:fae131f1",
+      "from": "file:src-stories-baseline-date-range-picker-stories-tsx:8d74155d",
+      "to": "package:react:6b810c90",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/baseline/date-range-picker.stories.tsx",
+          "line": 1
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "react",
+        "package": "react"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-baseline-date-range-picker-stories-tsx-8d74155d-imports:46166364",
+      "from": "file:src-stories-baseline-date-range-picker-stories-tsx:8d74155d",
+      "to": "package:storybook-nextjs-vite:97c66b71",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/baseline/date-range-picker.stories.tsx",
+          "line": 2
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "@storybook/nextjs-vite",
+        "package": "@storybook/nextjs-vite"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-baseline-date-range-picker-stories-tsx-8d74155d-imports:1ddcd0e5",
+      "from": "file:src-stories-baseline-date-range-picker-stories-tsx:8d74155d",
+      "to": "package:storybook:f8437193",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/baseline/date-range-picker.stories.tsx",
+          "line": 3
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "storybook/test",
+        "package": "storybook"
       }
     },
     {
