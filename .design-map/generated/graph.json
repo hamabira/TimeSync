@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-22T13:33:28.410959+00:00",
+  "generatedAt": "2026-11-02T02:22:21.876093+00:00",
   "project": {
     "name": "akimatch",
     "root": "."
@@ -1160,6 +1160,19 @@
       "path": "src/lib/site-url.ts"
     },
     {
+      "id": "file:scripts-smoke-worker-mjs:b1f6377d",
+      "kind": "file",
+      "label": "smoke-worker.mjs",
+      "description": "Source file scripts/smoke-worker.mjs",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "scripts/smoke-worker.mjs",
+        "line": null
+      },
+      "path": "scripts/smoke-worker.mjs"
+    },
+    {
       "id": "file:src-components-ui-textarea-tsx:7ed7cbb9",
       "kind": "file",
       "label": "textarea.tsx",
@@ -1263,7 +1276,7 @@
         "line": null
       },
       "external": true,
-      "version": "^4.20260501.1"
+      "version": "^5.20261006.1"
     },
     {
       "id": "package:opennextjs-cloudflare:35157862",
@@ -1277,7 +1290,7 @@
         "line": null
       },
       "external": true,
-      "version": "^1.19.8"
+      "version": "^1.20.15"
     },
     {
       "id": "package:storybook-addon-a11y:45a03493",
@@ -1524,7 +1537,7 @@
       "origin": "inferred",
       "confidence": 0.85,
       "source": {
-        "file": "tests/date-only.test.mjs",
+        "file": "scripts/smoke-worker.mjs",
         "line": null
       },
       "external": true
@@ -1537,7 +1550,7 @@
       "origin": "inferred",
       "confidence": 0.85,
       "source": {
-        "file": "tests/date-only.test.mjs",
+        "file": "scripts/smoke-worker.mjs",
         "line": null
       },
       "external": true
@@ -1551,6 +1564,19 @@
       "confidence": 0.85,
       "source": {
         "file": "scripts/generate-service-worker.mjs",
+        "line": null
+      },
+      "external": true
+    },
+    {
+      "id": "package:node-events:bd27276b",
+      "kind": "package",
+      "label": "node:events",
+      "description": "Imported package node:events",
+      "origin": "inferred",
+      "confidence": 0.85,
+      "source": {
+        "file": "scripts/smoke-worker.mjs",
         "line": null
       },
       "external": true
@@ -1603,6 +1629,19 @@
       "confidence": 0.85,
       "source": {
         "file": "tests/date-only.test.mjs",
+        "line": null
+      },
+      "external": true
+    },
+    {
+      "id": "package:node-timers:77ef7384",
+      "kind": "package",
+      "label": "node:timers",
+      "description": "Imported package node:timers",
+      "origin": "inferred",
+      "confidence": 0.85,
+      "source": {
+        "file": "scripts/smoke-worker.mjs",
         "line": null
       },
       "external": true
@@ -1771,7 +1810,7 @@
         "line": null
       },
       "external": true,
-      "version": "^4.87.0"
+      "version": "^4.148.0"
     },
     {
       "id": "screen:item:42099b4a",
@@ -2244,7 +2283,7 @@
       "from": "package:local-akimatch:5590ce5a",
       "to": "package:cloudflare-workers-types:634414d7",
       "kind": "depends_on",
-      "label": "^4.20260501.1",
+      "label": "^5.20261006.1",
       "origin": "extracted",
       "confidence": 1.0,
       "evidence": [
@@ -2388,7 +2427,7 @@
       "from": "package:local-akimatch:5590ce5a",
       "to": "package:opennextjs-cloudflare:35157862",
       "kind": "depends_on",
-      "label": "^1.19.8",
+      "label": "^1.20.15",
       "origin": "extracted",
       "confidence": 1.0,
       "evidence": [
@@ -2644,7 +2683,7 @@
       "from": "package:local-akimatch:5590ce5a",
       "to": "package:wrangler:c48ff8be",
       "kind": "depends_on",
-      "label": "^4.87.0",
+      "label": "^4.148.0",
       "origin": "extracted",
       "confidence": 1.0,
       "evidence": [
@@ -2917,6 +2956,86 @@
         "resolution": "package",
         "specifier": "node:url",
         "package": "node:url"
+      }
+    },
+    {
+      "id": "edge:file-scripts-smoke-worker-mjs-b1f6377d-imports-package-node-assert-f1a93:494e6c6e",
+      "from": "file:scripts-smoke-worker-mjs:b1f6377d",
+      "to": "package:node-assert:f1a93ba5",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "scripts/smoke-worker.mjs",
+          "line": 1
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:assert/strict",
+        "package": "node:assert"
+      }
+    },
+    {
+      "id": "edge:file-scripts-smoke-worker-mjs-b1f6377d-imports-package-node-child-proces:403fd8bf",
+      "from": "file:scripts-smoke-worker-mjs:b1f6377d",
+      "to": "package:node-child-process:f62b7d19",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "scripts/smoke-worker.mjs",
+          "line": 2
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:child_process",
+        "package": "node:child_process"
+      }
+    },
+    {
+      "id": "edge:file-scripts-smoke-worker-mjs-b1f6377d-imports-package-node-events-bd272:3a73a320",
+      "from": "file:scripts-smoke-worker-mjs:b1f6377d",
+      "to": "package:node-events:bd27276b",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "scripts/smoke-worker.mjs",
+          "line": 3
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:events",
+        "package": "node:events"
+      }
+    },
+    {
+      "id": "edge:file-scripts-smoke-worker-mjs-b1f6377d-imports-package-node-timers-77ef7:5199c637",
+      "from": "file:scripts-smoke-worker-mjs:b1f6377d",
+      "to": "package:node-timers:77ef7384",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "scripts/smoke-worker.mjs",
+          "line": 4
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "node:timers/promises",
+        "package": "node:timers"
       }
     },
     {
