@@ -128,3 +128,14 @@
     @apply font-sans;
   }
 }
+
+/* Event date-range picker. */
+.date-range-calendar {
+  --primary: var(--color-blue-600);
+  --primary-foreground: #fff;
+  --muted: var(--color-blue-100);
+}
+.date-range-calendar .rdp-range_middle button { color: var(--color-blue-900); }
+.date-range-calendar .date-range-today button { font-weight: 700; color: var(--color-blue-700); }
+.date-range-calendar .date-range-today[data-selected] button:not([data-range-middle="true"]) { color: #fff; }
+.date-range-calendar .date-range-preview:not([data-selected]) { background: var(--color-blue-50); }

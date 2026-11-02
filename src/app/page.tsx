@@ -125,7 +125,7 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col space-y-2">
-              <Label className="text-base font-semibold text-slate-700">
+              <Label htmlFor="event-date-range" className="text-base font-semibold text-slate-700">
                 対象期間 <span className="text-red-500">*</span>
               </Label>
               <span className="text-sm text-slate-500 mb-2">
