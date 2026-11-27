@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-27T18:06:07.248272+00:00",
+  "generatedAt": "2026-11-27T18:12:17.691491+00:00",
   "project": {
     "name": "akimatch",
     "root": "."
@@ -768,6 +768,19 @@
         "line": null
       },
       "path": "src/app/manifest.ts"
+    },
+    {
+      "id": "file:src-stories-proposals-mobile-range-stories-tsx:2242f4a3",
+      "kind": "file",
+      "label": "mobile-range.stories.tsx",
+      "description": "Source file src/stories/proposals/mobile-range.stories.tsx",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "source": {
+        "file": "src/stories/proposals/mobile-range.stories.tsx",
+        "line": null
+      },
+      "path": "src/stories/proposals/mobile-range.stories.tsx"
     },
     {
       "id": "file:next-config-ts:a0c2fdd2",
@@ -6824,6 +6837,143 @@
         "resolution": "package",
         "specifier": "react",
         "package": "react"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-proposals-mobile-range-stories-tsx-2242f4a3-imports-fil:2cba6aca",
+      "from": "file:src-stories-proposals-mobile-range-stories-tsx:2242f4a3",
+      "to": "file:src-components-date-range-picker-tsx:008c363c",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/proposals/mobile-range.stories.tsx",
+          "line": 8
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/components/date-range-picker"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-proposals-mobile-range-stories-tsx-2242f4a3-imports-fil:4579a80f",
+      "from": "file:src-stories-proposals-mobile-range-stories-tsx:2242f4a3",
+      "to": "file:src-components-ui-calendar-tsx:f35c0af6",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/proposals/mobile-range.stories.tsx",
+          "line": 7
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/components/ui/calendar"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-proposals-mobile-range-stories-tsx-2242f4a3-imports-fil:64648075",
+      "from": "file:src-stories-proposals-mobile-range-stories-tsx:2242f4a3",
+      "to": "file:src-lib-date-range-ts:cff03895",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/proposals/mobile-range.stories.tsx",
+          "line": 9
+        }
+      ],
+      "metadata": {
+        "resolution": "file",
+        "specifier": "@/lib/date-range"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-proposals-mobile-range-stories-tsx-2242f4a3-imports-pac:215724ec",
+      "from": "file:src-stories-proposals-mobile-range-stories-tsx:2242f4a3",
+      "to": "package:date-fns:c321bc86",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/proposals/mobile-range.stories.tsx",
+          "line": 4
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "date-fns/locale",
+        "package": "date-fns"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-proposals-mobile-range-stories-tsx-2242f4a3-imports-pac:fc9834ba",
+      "from": "file:src-stories-proposals-mobile-range-stories-tsx:2242f4a3",
+      "to": "package:react-day-picker:f36c1b74",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/proposals/mobile-range.stories.tsx",
+          "line": 5
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "react-day-picker",
+        "package": "react-day-picker"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-proposals-mobile-range-stories-tsx-2242f4a3-imports-pac:f79de296",
+      "from": "file:src-stories-proposals-mobile-range-stories-tsx:2242f4a3",
+      "to": "package:react:6b810c90",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/proposals/mobile-range.stories.tsx",
+          "line": 1
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "react",
+        "package": "react"
+      }
+    },
+    {
+      "id": "edge:file-src-stories-proposals-mobile-range-stories-tsx-2242f4a3-imports-pac:cd2d4f93",
+      "from": "file:src-stories-proposals-mobile-range-stories-tsx:2242f4a3",
+      "to": "package:storybook-nextjs-vite:97c66b71",
+      "kind": "imports",
+      "label": "imports",
+      "origin": "extracted",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "file": "src/stories/proposals/mobile-range.stories.tsx",
+          "line": 2
+        }
+      ],
+      "metadata": {
+        "resolution": "package",
+        "specifier": "@storybook/nextjs-vite",
+        "package": "@storybook/nextjs-vite"
       }
     },
     {
