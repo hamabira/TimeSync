@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-02T03:26:56.756651+00:00",
+  "generatedAt": "2026-11-27T18:06:07.248272+00:00",
   "project": {
     "name": "akimatch",
     "root": "."
@@ -1512,7 +1512,7 @@
         "line": null
       },
       "external": true,
-      "version": "16.4.1"
+      "version": "16.4.6"
     },
     {
       "id": "package:lucide-react:0cab62d1",
@@ -1540,7 +1540,7 @@
         "line": null
       },
       "external": true,
-      "version": "16.4.1"
+      "version": "16.4.6"
     },
     {
       "id": "package:node-assert:f1a93ba5",
@@ -2376,7 +2376,7 @@
       "from": "package:local-akimatch:5590ce5a",
       "to": "package:eslint-config-next:327f0f3d",
       "kind": "depends_on",
-      "label": "16.4.1",
+      "label": "16.4.6",
       "origin": "extracted",
       "confidence": 1.0,
       "evidence": [
@@ -2424,7 +2424,7 @@
       "from": "package:local-akimatch:5590ce5a",
       "to": "package:next:edee9402",
       "kind": "depends_on",
-      "label": "16.4.1",
+      "label": "16.4.6",
       "origin": "extracted",
       "confidence": 1.0,
       "evidence": [
